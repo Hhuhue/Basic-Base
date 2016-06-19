@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using TileType = LandController.LandType;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -17,9 +18,8 @@ public class MapGenerator : MonoBehaviour
     private GameObject selectedChild;
     private SpriteRenderer selectorRenderer;
 
-    private string[,] map;
-    private const string GRASS = "Sprites/grass";
-    private const string WATER = "Sprites/water";
+    private TileType[,] map;
+    private TileType[,] resources;
 
     void Start()
     {
@@ -33,6 +33,9 @@ public class MapGenerator : MonoBehaviour
         }
 
         DrawMap();
+        resources = map;
+        GenerateForest();
+        DrawResources();
     }
 
     void Update()
@@ -51,7 +54,7 @@ public class MapGenerator : MonoBehaviour
 
     void SetSelector()
     {
-        GameObject selector = new GameObject();
+        GameObject selector = new GameObject("selector");
         selector.transform.parent = transform;
         selectorRenderer = selector.AddComponent<SpriteRenderer>();
         selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
@@ -60,7 +63,7 @@ public class MapGenerator : MonoBehaviour
 
     void GenerateMap()
     {
-        map = new string[width, height];
+        map = new LandController.LandType[width, height];
         childs = new GameObject[width, height];
     }
 
@@ -74,7 +77,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                map[x, y] = random.Next(0, 100) < fillPercentage ? GRASS : WATER;
+                map[x, y] = random.Next(0, 100) < fillPercentage ? TileType.PLAIN : TileType.WATER;
             }
         }
     }
@@ -87,12 +90,28 @@ public class MapGenerator : MonoBehaviour
             {
                 int surroundingLandCount = GetSurroundingLandCount(x, y);
 
-                if (surroundingLandCount > 4) map[x, y] = GRASS;
-                if (surroundingLandCount < 4) map[x, y] = WATER;
+                if (surroundingLandCount > 4) map[x, y] = TileType.PLAIN;
+                if (surroundingLandCount < 4) map[x, y] = TileType.WATER;
             }
         }
     }
 
+    void GenerateForest()
+    {
+        System.Random random = new System.Random(seed.GetHashCode());
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if(map[x,y] == TileType.PLAIN)
+                {
+                    resources[x, y] = random.Next(0, 100) < 50 ? TileType.FOREST : TileType.PLAIN;                     
+                }
+            }
+        }
+    }
+    
     int GetSurroundingLandCount(int xPosition, int yPosition)
     {
         int landCount = 0;
@@ -103,7 +122,25 @@ public class MapGenerator : MonoBehaviour
             {
                 if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
                 {
-                    if (map[x, y] == GRASS) landCount++;
+                    if (map[x, y] == TileType.PLAIN) landCount++;
+                }
+            }
+        }
+
+        return landCount;
+    }
+
+    int GetSurroundingForestCount(int xPosition, int yPosition)
+    {
+        int landCount = 0;
+
+        for (int x = xPosition - 1; x < xPosition + 2; x++)
+        {
+            for (int y = yPosition - 1; y < yPosition + 2; y++)
+            {
+                if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
+                {
+                    if (map[x, y] == TileType.PLAIN) landCount++;
                 }
             }
         }
@@ -119,16 +156,33 @@ public class MapGenerator : MonoBehaviour
             {
                 for (int y = 0; y < height; y++)
                 {
-                    GameObject tile = Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Tile"));
+                    GameObject tile = Instantiate(Resources.Load<GameObject>("Prefabs/Tile"));
                     Vector2 position = new Vector2(x + 0.5f, y + 0.5f);
 
                     tile.transform.position = position;
                     tile.transform.parent = transform;
                     LandController controller = tile.GetComponent<LandController>();
-                    controller.SetSprite(map[x, y]);
+                    controller.SetSprite("Sprites/" + map[x, y].ToString().ToLower());
                     controller.SetPosition(x, y);
 
                     childs[x, y] = tile;
+                }
+            }
+        }
+    }
+
+    void DrawResources()
+    {
+        if (resources != null)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (resources[x, y] != TileType.PLAIN && resources[x, y] != TileType.WATER)
+                    {
+                        childs[x, y].GetComponent<LandController>().SetLandType(resources[x, y]);
+                    }
                 }
             }
         }
