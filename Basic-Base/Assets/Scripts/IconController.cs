@@ -13,7 +13,5 @@ public class IconController : MonoBehaviour
     {
         renderer = GetComponent<SpriteRenderer>();
         renderer.sprite = Resources.Load<Sprite>(path);
-        renderer.enabled = false;
-        renderer.enabled = true;
     }
 }
