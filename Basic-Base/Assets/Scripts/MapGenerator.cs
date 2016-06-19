@@ -3,9 +3,9 @@ using System.Collections;
 
 public class MapGenerator : MonoBehaviour
 {
-
     public int width;
     public int height;
+    public int smoothCount;
 
     public string seed;
     public bool useRandomSeed;
@@ -14,16 +14,48 @@ public class MapGenerator : MonoBehaviour
     public int fillPercentage;
 
     private GameObject[,] childs;
+    private GameObject selectedChild;
+    private SpriteRenderer selectorRenderer;
+
     private string[,] map;
     private const string GRASS = "Sprites/grass";
     private const string WATER = "Sprites/water";
 
     void Start()
     {
+        SetSelector();
         GenerateMap();
         RandomFillMap();
-        SmoothMap();
+
+        for (int i = 0; i < smoothCount; i++)
+        {
+            SmoothMap();
+        }
+
         DrawMap();
+    }
+
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit))
+            {
+                Debug.Log(hit.point.x + " " + hit.point.y);
+                SelectTile((int)hit.point.x, (int)hit.point.y);
+            }
+        }
+    }
+
+    void SetSelector()
+    {
+        GameObject selector = new GameObject();
+        selector.transform.parent = transform;
+        selectorRenderer = selector.AddComponent<SpriteRenderer>();
+        selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
+        selectorRenderer.enabled = false;
     }
 
     void GenerateMap()
@@ -34,11 +66,11 @@ public class MapGenerator : MonoBehaviour
 
     void RandomFillMap()
     {
-        if (useRandomSeed) seed = Time.time.ToString();
+        if (useRandomSeed) seed = System.DateTime.UtcNow.ToString();
 
         System.Random random = new System.Random(seed.GetHashCode());
 
-        for(int x = 0; x < width; x++)
+        for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
@@ -55,7 +87,8 @@ public class MapGenerator : MonoBehaviour
             {
                 int surroundingLandCount = GetSurroundingLandCount(x, y);
 
-                map[x, y] = surroundingLandCount >= 4 ? GRASS : WATER;
+                if (surroundingLandCount > 4) map[x, y] = GRASS;
+                if (surroundingLandCount < 4) map[x, y] = WATER;
             }
         }
     }
@@ -64,15 +97,14 @@ public class MapGenerator : MonoBehaviour
     {
         int landCount = 0;
 
-        for(int x = xPosition - 1; x < xPosition + 2; x++)
+        for (int x = xPosition - 1; x < xPosition + 2; x++)
         {
-            for (int y = yPosition - 1; y < yPosition + 2; x++)
+            for (int y = yPosition - 1; y < yPosition + 2; y++)
             {
-                if (IsPositionValid(x, y) && x != xPosition && y != yPosition)
+                if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
                 {
                     if (map[x, y] == GRASS) landCount++;
                 }
-                    
             }
         }
 
@@ -81,7 +113,7 @@ public class MapGenerator : MonoBehaviour
 
     void DrawMap()
     {
-        if(map != null)
+        if (map != null)
         {
             for (int x = 0; x < width; x++)
             {
@@ -90,11 +122,13 @@ public class MapGenerator : MonoBehaviour
                     GameObject tile = Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/Tile"));
                     Vector2 position = new Vector2(x + 0.5f, y + 0.5f);
 
-                    tile.GetComponent<LandController>().SetSprite(map[x, y]);
                     tile.transform.position = position;
                     tile.transform.parent = transform;
+                    LandController controller = tile.GetComponent<LandController>();
+                    controller.SetSprite(map[x, y]);
+                    controller.SetPosition(x, y);
 
-                    childs[x, y] = tile;                   
+                    childs[x, y] = tile;
                 }
             }
         }
@@ -103,5 +137,20 @@ public class MapGenerator : MonoBehaviour
     public bool IsPositionValid(int x, int y)
     {
         return y >= 0 && x >= 0 && y < height && x < width;
+    }
+
+    public void SelectTile(int x, int y)
+    {
+        if (selectedChild == childs[x,y])
+        {
+            selectedChild = null;
+            selectorRenderer.enabled = false;
+        }
+        else
+        {
+            selectedChild = childs[x, y];
+            selectorRenderer.enabled = true;
+            selectorRenderer.transform.position = new Vector2(x + 0.5f, y + 0.5f);
+        }
     }
 }

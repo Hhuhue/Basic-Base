@@ -3,9 +3,17 @@ using System.Collections;
 
 public class LandController : MonoBehaviour
 {
+    private int xPosition;
+    private int yPosition;
+
     void Start()
     {
-        Debug.Log("Hi");
+    }
+
+    public void SetPosition(int x, int y)
+    {
+        xPosition = x;
+        yPosition = y;
     }
 
     public void SetSprite(string sprite)
