@@ -35,21 +35,13 @@ public class MapGenerator : MonoBehaviour
         DrawMap();
         resources = map;
         GenerateForest();
+        GenerateMountain();
         DrawResources();
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            RaycastHit hit;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit))
-            {
-                Debug.Log(hit.point.x + " " + hit.point.y);
-                SelectTile((int)hit.point.x, (int)hit.point.y);
-            }
-        }
+        
     }
 
     void SetSelector()
@@ -111,26 +103,24 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
-    
-    int GetSurroundingLandCount(int xPosition, int yPosition)
-    {
-        int landCount = 0;
 
-        for (int x = xPosition - 1; x < xPosition + 2; x++)
+    void GenerateMountain()
+    {
+        System.Random random = new System.Random(seed.GetHashCode());
+
+        for (int x = 0; x < width; x++)
         {
-            for (int y = yPosition - 1; y < yPosition + 2; y++)
+            for (int y = 0; y < height; y++)
             {
-                if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
+                if (map[x, y] != TileType.WATER)
                 {
-                    if (map[x, y] == TileType.PLAIN) landCount++;
+                    resources[x, y] = random.Next(0, 100) > 95 ? TileType.MOUNTAIN : resources[x, y];
                 }
             }
         }
-
-        return landCount;
     }
 
-    int GetSurroundingForestCount(int xPosition, int yPosition)
+    int GetSurroundingLandCount(int xPosition, int yPosition)
     {
         int landCount = 0;
 
