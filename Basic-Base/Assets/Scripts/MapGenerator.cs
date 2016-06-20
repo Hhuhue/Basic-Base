@@ -36,6 +36,7 @@ public class MapGenerator : MonoBehaviour
         resources = map;
         GenerateForest();
         GenerateMountain();
+        GenerateCoast();
         DrawResources();
     }
 
@@ -87,7 +88,7 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
-
+    
     void GenerateForest()
     {
         System.Random random = new System.Random(seed.GetHashCode());
@@ -120,6 +121,28 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+    void GenerateCoast()
+    {
+        System.Random random = new System.Random(seed.GetHashCode());
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (map[x, y] != TileType.WATER)
+                {
+                    bool waterOnTop = (y + 1 < height) && map[x, y + 1] == TileType.WATER;
+                    bool waterOnBottom = (y - 1 >= 0) && map[x, y - 1] == TileType.WATER;
+                    bool waterOnLeft = (x - 1 >= 0) && map[x - 1, y] == TileType.WATER;
+                    bool waterOnRight = (x + 1 < width) && map[x + 1, y] == TileType.WATER;
+
+                    if(waterOnRight || waterOnBottom || waterOnLeft || waterOnTop)
+                        resources[x, y] = random.Next(0, 100) > 70 ? TileType.COAST : resources[x, y];
+                }
+            }
+        }
+    }
+
     int GetSurroundingLandCount(int xPosition, int yPosition)
     {
         int landCount = 0;
@@ -130,7 +153,7 @@ public class MapGenerator : MonoBehaviour
             {
                 if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
                 {
-                    if (map[x, y] == TileType.PLAIN) landCount++;
+                    if (map[x, y] != TileType.WATER) landCount++;
                 }
             }
         }
