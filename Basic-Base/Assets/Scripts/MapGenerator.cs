@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using TileType = LandController.LandType;
+using Orientation = LandController.Orientation;
+using System;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -40,11 +42,6 @@ public class MapGenerator : MonoBehaviour
         DrawResources();
     }
 
-    void Update()
-    {
-        
-    }
-
     void SetSelector()
     {
         GameObject selector = new GameObject("selector");
@@ -56,7 +53,7 @@ public class MapGenerator : MonoBehaviour
 
     void GenerateMap()
     {
-        map = new LandController.LandType[width, height];
+        map = new TileType[width, height];
         childs = new GameObject[width, height];
     }
 
@@ -88,7 +85,7 @@ public class MapGenerator : MonoBehaviour
             }
         }
     }
-    
+
     void GenerateForest()
     {
         System.Random random = new System.Random(seed.GetHashCode());
@@ -97,9 +94,9 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                if(map[x,y] == TileType.PLAIN)
+                if (map[x, y] == TileType.PLAIN)
                 {
-                    resources[x, y] = random.Next(0, 100) < 50 ? TileType.FOREST : TileType.PLAIN;                     
+                    resources[x, y] = random.Next(0, 100) < 50 ? TileType.FOREST : TileType.PLAIN;
                 }
             }
         }
@@ -131,13 +128,8 @@ public class MapGenerator : MonoBehaviour
             {
                 if (map[x, y] != TileType.WATER)
                 {
-                    bool waterOnTop = (y + 1 < height) && map[x, y + 1] == TileType.WATER;
-                    bool waterOnBottom = (y - 1 >= 0) && map[x, y - 1] == TileType.WATER;
-                    bool waterOnLeft = (x - 1 >= 0) && map[x - 1, y] == TileType.WATER;
-                    bool waterOnRight = (x + 1 < width) && map[x + 1, y] == TileType.WATER;
-
-                    if(waterOnRight || waterOnBottom || waterOnLeft || waterOnTop)
-                        resources[x, y] = random.Next(0, 100) > 70 ? TileType.COAST : resources[x, y];
+                    if (GetCoastOrientation(x, y) != Orientation.DEFAULT)
+                        resources[x, y] = random.Next(0, 100) > 80 ? TileType.COAST : resources[x, y];
                 }
             }
         }
@@ -186,19 +178,51 @@ public class MapGenerator : MonoBehaviour
 
     void DrawResources()
     {
-        if (resources != null)
+        if (resources == null) return;
+
+        for (int x = 0; x < width; x++)
         {
-            for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
             {
-                for (int y = 0; y < height; y++)
+                Orientation orientation = Orientation.DEFAULT;
+                switch (resources[x, y])
                 {
-                    if (resources[x, y] != TileType.PLAIN && resources[x, y] != TileType.WATER)
-                    {
-                        childs[x, y].GetComponent<LandController>().SetLandType(resources[x, y]);
-                    }
+                    case TileType.PLAIN:
+                    case TileType.WATER:
+                        continue;
+                    case TileType.COAST:
+                        orientation = GetCoastOrientation(x, y);
+                        if (IsOrientationCorner(orientation)) resources[x, y] = TileType.COAST_CORNER;
+                        break;
                 }
+
+                childs[x, y].GetComponent<LandController>().SetLandType(resources[x, y], orientation);
             }
         }
+    }
+
+    private Orientation GetCoastOrientation(int x, int y)
+    {
+        bool waterOnTop = y + 1 < height && map[x, y + 1] == TileType.WATER;
+        bool waterOnBottom = y - 1 >= 0 && map[x, y - 1] == TileType.WATER;
+        bool waterOnLeft = x - 1 >= 0 && map[x - 1, y] == TileType.WATER;
+        bool waterOnRight = x + 1 < width && map[x + 1, y] == TileType.WATER;
+
+        if (waterOnTop)
+        {
+            return waterOnRight
+                ? Orientation.TOP_RIGHT
+                : (waterOnLeft ? Orientation.TOP_LEFT : Orientation.TOP);
+        }
+
+        if (waterOnBottom)
+        {
+            return waterOnRight
+               ? Orientation.BOTTOM_RIGHT
+               : (waterOnLeft ? Orientation.BOTTOM_LEFT : Orientation.BOTTOM);
+        }
+
+        return waterOnLeft ? Orientation.LEFT : (waterOnRight ? Orientation.RIGHT : Orientation.DEFAULT);
     }
 
     public bool IsPositionValid(int x, int y)
@@ -206,9 +230,17 @@ public class MapGenerator : MonoBehaviour
         return y >= 0 && x >= 0 && y < height && x < width;
     }
 
+    bool IsOrientationCorner(Orientation orientation)
+    {
+        return orientation == Orientation.BOTTOM_LEFT ||
+               orientation == Orientation.BOTTOM_RIGHT ||
+               orientation == Orientation.TOP_LEFT ||
+               orientation == Orientation.TOP_RIGHT;
+    }
+
     public void SelectTile(int x, int y)
     {
-        if (selectedChild == childs[x,y])
+        if (selectedChild == childs[x, y])
         {
             selectedChild = null;
             selectorRenderer.enabled = false;
