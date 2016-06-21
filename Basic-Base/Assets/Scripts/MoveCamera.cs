@@ -6,7 +6,8 @@ using System.Collections;
 
 public class MoveCamera : MonoBehaviour
 {
-
+    public int mapHeight;
+    public int mapWidth;
     public float panSpeed = 4.0f;       // Speed of the camera when being panned
     public float zoomSpeed = 4.0f;      // Speed of the camera going back and forth
 
@@ -25,20 +26,31 @@ public class MoveCamera : MonoBehaviour
         
         if (isPanning)
         {
-            Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition - mouseOrigin);
+            float cameraSize = Camera.main.orthographicSize;
+            Vector3 cameraPosition = Camera.main.transform.position;
 
-            Vector3 move = new Vector3(pos.x * panSpeed, pos.y * panSpeed, 0);
+            Vector3 position = Camera.main.ScreenToViewportPoint(Input.mousePosition - mouseOrigin);
+
+            Vector3 move = new Vector3(position.x * panSpeed, position.y * panSpeed, 0);
+
+            if (cameraPosition.x - cameraSize*2 + move.x < 0 || cameraPosition.x + cameraSize*2 + move.x >= mapWidth)
+                move.x = 0;
+
+            if(cameraPosition.y - cameraSize + move.y < 0 || cameraPosition.y + cameraSize + move.y >= mapHeight)
+                move.y = 0;
+
             transform.Translate(move, Space.Self);
+
         }
 
-        if (Input.GetAxis("Mouse ScrollWheel") < 0) // forward
+        if (Input.GetAxis("Mouse ScrollWheel") < 0) // zoom back
         {
-            Camera.main.orthographicSize++;
+            if(Camera.main.orthographicSize < 10) Camera.main.orthographicSize++;
         }
 
-        if (Input.GetAxis("Mouse ScrollWheel") > 0) // back
+        if (Input.GetAxis("Mouse ScrollWheel") > 0) // zoom in
         {
-            Camera.main.orthographicSize--;
+            if (Camera.main.orthographicSize > 2) Camera.main.orthographicSize--;
         }
     }
 }

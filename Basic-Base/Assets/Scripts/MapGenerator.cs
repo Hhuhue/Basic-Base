@@ -26,6 +26,7 @@ public class MapGenerator : MonoBehaviour
     void Start()
     {
         SetSelector();
+        SetCamera();
         GenerateMap();
         RandomFillMap();
 
@@ -42,10 +43,18 @@ public class MapGenerator : MonoBehaviour
         DrawResources();
     }
 
+    void SetCamera()
+    {
+        MoveCamera camera = Camera.main.transform.GetComponent<MoveCamera>();
+        camera.mapWidth = width;
+        camera.mapHeight = height;
+    }
+
     void SetSelector()
     {
         GameObject selector = new GameObject("selector");
         selector.transform.parent = transform;
+        selector.transform.position = new Vector3(0, 0, -10);
         selectorRenderer = selector.AddComponent<SpriteRenderer>();
         selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
         selectorRenderer.enabled = false;
@@ -59,7 +68,7 @@ public class MapGenerator : MonoBehaviour
 
     void RandomFillMap()
     {
-        if (useRandomSeed) seed = System.DateTime.UtcNow.ToString();
+        if (useRandomSeed) seed = DateTime.UtcNow.ToString();
 
         System.Random random = new System.Random(seed.GetHashCode());
 
@@ -249,7 +258,7 @@ public class MapGenerator : MonoBehaviour
         {
             selectedChild = childs[x, y];
             selectorRenderer.enabled = true;
-            selectorRenderer.transform.position = new Vector2(x + 0.5f, y + 0.5f);
+            selectorRenderer.transform.position = new Vector3(x + 0.5f, y + 0.5f, -2);
         }
     }
 }
