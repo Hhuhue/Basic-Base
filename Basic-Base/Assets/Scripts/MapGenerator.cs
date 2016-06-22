@@ -202,6 +202,7 @@ public class MapGenerator : MonoBehaviour
                     case TileType.COAST:
                         orientation = GetCoastOrientation(x, y);
                         if (IsOrientationCorner(orientation)) resources[x, y] = TileType.COAST_CORNER;
+                        if (IsCoastEnd(x, y)) resources[x, y] = TileType.COAST_END;
                         break;
                 }
 
@@ -210,12 +211,33 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+    private bool IsCoastEnd(int x, int y)
+    {
+        int trueConditionCount = 0;
+        trueConditionCount += (y + 1 < height && map[x, y + 1] == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (y - 1 >= 0 && map[x, y - 1] == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x - 1 >= 0 && map[x - 1, y] == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x + 1 < width && map[x + 1, y] == TileType.WATER) ? 1 : 0;
+
+        return trueConditionCount > 2;
+    }
+
     private Orientation GetCoastOrientation(int x, int y)
     {
         bool waterOnTop = y + 1 < height && map[x, y + 1] == TileType.WATER;
         bool waterOnBottom = y - 1 >= 0 && map[x, y - 1] == TileType.WATER;
         bool waterOnLeft = x - 1 >= 0 && map[x - 1, y] == TileType.WATER;
         bool waterOnRight = x + 1 < width && map[x + 1, y] == TileType.WATER;
+
+        if(waterOnBottom && waterOnTop)
+        {
+            return waterOnRight ? Orientation.RIGHT :(waterOnLeft ? Orientation.LEFT : Orientation.DEFAULT);
+        }
+
+        if (waterOnRight && waterOnLeft)
+        {
+            return waterOnTop ? Orientation.TOP : (waterOnBottom ? Orientation.BOTTOM : Orientation.DEFAULT);
+        }
 
         if (waterOnTop)
         {

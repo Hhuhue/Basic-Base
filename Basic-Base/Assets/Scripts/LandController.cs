@@ -66,7 +66,8 @@ public class LandController : MonoBehaviour
         FOREST,
         MOUNTAIN,
         COAST,
-        COAST_CORNER
+        COAST_CORNER,
+        COAST_END
     }
 
     public enum Orientation
