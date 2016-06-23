@@ -6,12 +6,15 @@ public class LandController : MonoBehaviour
 {
     public GameObject map;
 
-    private TileType[,] resources;
+    private Tile[,] resources;
+    private GameObject[,] childs;
 
     void Start()
     {
         MapGenerator mapGenerator = map.GetComponent<MapGenerator>();
         resources = mapGenerator.GetMap();
+
+        childs = new GameObject[mapGenerator.width, mapGenerator.height];
 
         int landCount = 0;
         for (int x = 0; x < mapGenerator.width; x++)
@@ -24,9 +27,20 @@ public class LandController : MonoBehaviour
 
                 LandGenerator generator = land.AddComponent<LandGenerator>();
                 generator.resourceConcentration = 90;
-                generator.GenerateLand(resources[x,y], x, y, mapGenerator.seed);
+                generator.GenerateLand(resources, resources[x, y].Position, mapGenerator.seed);
+                childs[x, y] = land;
+
                 land.SetActive(false);
             }
         }
+    }
+
+    public void DrawLand(Tile tile)
+    {
+        GameObject land = childs[(int)tile.Position.x, (int)tile.Position.y];
+        land.SetActive(true);
+
+        LandGenerator generator = land.GetComponent<LandGenerator>();
+        generator.DrawLand(tile);
     }
 }

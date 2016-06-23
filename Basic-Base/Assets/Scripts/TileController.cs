@@ -5,18 +5,19 @@ public class TileController : MonoBehaviour
 {
     private int xPosition;
     private int yPosition;
-    public LandType type;
+    public Tile tile;
     private GameObject icon;
 
     void Start()
     {
+
     }
 
     void OnMouseDown()
     {
-
+        transform.parent.GetComponent<MapGenerator>().LoadTile(tile);
     }
-
+    
     void OnMouseEnter()
     {
         transform.parent.GetComponent<MapGenerator>().SelectTile(xPosition, yPosition);
@@ -28,13 +29,13 @@ public class TileController : MonoBehaviour
         yPosition = y;
     }
 
-    public void SetLandType(LandType type, Orientation orientation = Orientation.DEFAULT)
+    public void SetLandType(Tile tile, Orientation orientation = Orientation.DEFAULT)
     {
-        this.type = type;
+        this.tile = tile;
         icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
         icon.transform.parent = transform;
         icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
-        icon.GetComponent<IconController>().SetSprite("Sprites/" + type.ToString().ToLower());
+        icon.GetComponent<IconController>().SetSprite("Sprites/" + tile.TileType.ToString().ToLower());
         icon.transform.localEulerAngles = OrientationToVector(orientation);
     }
 

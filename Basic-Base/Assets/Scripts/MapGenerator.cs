@@ -28,9 +28,9 @@ public class MapGenerator : MonoBehaviour
     private GameObject[,] childs;
     private GameObject selectedChild;
     private SpriteRenderer selectorRenderer;
+    private LandController landController;
 
-    private TileType[,] map;
-    private TileType[,] resources;
+    private Tile[,] map;
 
     void Start()
     {
@@ -45,20 +45,20 @@ public class MapGenerator : MonoBehaviour
         }
 
         DrawMap();
-        resources = map;
         GenerateForest();
         GenerateMountain();
         GenerateCoast();
         DrawResources();
-        GenerateLands();
+        SetLandGenerator();
     }
 
-    void GenerateLands()
+    void SetLandGenerator()
     {
         GameObject lands = new GameObject("Lands");
         lands.transform.position = Vector3.zero;
         LandController controller = lands.AddComponent<LandController>();
         controller.map = gameObject;
+        landController = controller;
     }
 
     void SetCamera()
@@ -80,7 +80,7 @@ public class MapGenerator : MonoBehaviour
 
     void GenerateMap()
     {
-        map = new TileType[width, height];
+        map = new Tile[width, height];
         childs = new GameObject[width, height];
     }
 
@@ -94,7 +94,8 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                map[x, y] = random.Next(0, 100) < fillPercentage ? TileType.PLAIN : TileType.WATER;
+                map[x, y] = new Tile() { Position = new Vector2(x, y) };
+                map[x, y].TileType = random.Next(0, 100) < fillPercentage ? TileType.PLAIN : TileType.WATER;
             }
         }
     }
@@ -107,8 +108,8 @@ public class MapGenerator : MonoBehaviour
             {
                 int surroundingLandCount = GetSurroundingLandCount(x, y);
 
-                if (surroundingLandCount > 4) map[x, y] = TileType.PLAIN;
-                if (surroundingLandCount < 4) map[x, y] = TileType.WATER;
+                if (surroundingLandCount > 4) map[x, y].TileType = TileType.PLAIN;
+                if (surroundingLandCount < 4) map[x, y].TileType = TileType.WATER;
             }
         }
     }
@@ -121,9 +122,9 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                if (map[x, y] != TileType.WATER)
+                if (map[x, y].TileType != TileType.WATER)
                 {
-                    resources[x, y] = random.Next(0, 100) < forestPercentage ? TileType.FOREST : TileType.PLAIN;
+                    map[x, y].TileType = random.Next(0, 100) < forestPercentage ? TileType.FOREST : TileType.PLAIN;
                 }
             }
         }
@@ -137,9 +138,9 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                if (map[x, y] != TileType.WATER)
+                if (map[x, y].TileType != TileType.WATER)
                 {
-                    resources[x, y] = random.Next(0, 100) < mountainPercentage ? TileType.MOUNTAIN : resources[x, y];
+                    map[x, y].TileType = random.Next(0, 100) < mountainPercentage ? TileType.MOUNTAIN : map[x, y].TileType;
                 }
             }
         }
@@ -153,10 +154,10 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                if (map[x, y] != TileType.WATER)
+                if (map[x, y].TileType != TileType.WATER)
                 {
                     if (GetCoastOrientation(x, y) != Orientation.DEFAULT)
-                        resources[x, y] = random.Next(0, 100) < coastPercentage ? TileType.COAST : resources[x, y];
+                        map[x, y].TileType = random.Next(0, 100) < coastPercentage ? TileType.COAST : map[x, y].TileType;
                 }
             }
         }
@@ -172,7 +173,7 @@ public class MapGenerator : MonoBehaviour
             {
                 if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
                 {
-                    if (map[x, y] != TileType.WATER) landCount++;
+                    if (map[x, y].TileType != TileType.WATER) landCount++;
                 }
             }
         }
@@ -194,7 +195,7 @@ public class MapGenerator : MonoBehaviour
                     tile.transform.position = position;
                     tile.transform.parent = transform;
                     TileController controller = tile.GetComponent<TileController>();
-                    controller.SetSprite("Sprites/" + map[x, y].ToString().ToLower());
+                    controller.SetSprite("Sprites/" + map[x, y].TileType.ToString().ToLower());
                     controller.SetPosition(x, y);
 
                     childs[x, y] = tile;
@@ -205,26 +206,26 @@ public class MapGenerator : MonoBehaviour
 
     void DrawResources()
     {
-        if (resources == null) return;
-
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
                 Orientation orientation = Orientation.DEFAULT;
-                switch (resources[x, y])
+                switch (map[x, y].TileType)
                 {
                     case TileType.PLAIN:
                     case TileType.WATER:
                         continue;
+
                     case TileType.COAST:
                         orientation = GetCoastOrientation(x, y);
-                        if (IsOrientationCorner(orientation)) resources[x, y] = TileType.COAST_CORNER;
-                        if (IsCoastEnd(x, y)) resources[x, y] = TileType.COAST_END;
+                        if (IsOrientationCorner(orientation)) map[x, y].TileType = TileType.COAST_CORNER;
+                        if (IsCoastEnd(x, y)) map[x, y].TileType = TileType.COAST_END;
                         break;
                 }
 
-                childs[x, y].GetComponent<TileController>().SetLandType(resources[x, y], orientation);
+                childs[x, y].GetComponent<TileController>().SetLandType(map[x, y], orientation);
+                map[x, y].Orientation = orientation;
             }
         }
     }
@@ -232,32 +233,48 @@ public class MapGenerator : MonoBehaviour
     private bool IsCoastEnd(int x, int y)
     {
         int trueConditionCount = 0;
-        trueConditionCount += (y + 1 < height && map[x, y + 1] == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (y - 1 >= 0 && map[x, y - 1] == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (x - 1 >= 0 && map[x - 1, y] == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (x + 1 < width && map[x + 1, y] == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (y + 1 < height && map[x, y + 1].TileType == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (y - 1 >= 0 && map[x, y - 1].TileType == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x - 1 >= 0 && map[x - 1, y].TileType == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x + 1 < width && map[x + 1, y].TileType == TileType.WATER) ? 1 : 0;
 
         return trueConditionCount > 2;
     }
 
-    public TileType[,] GetMap()
+    public Tile[,] GetMap()
     {
-        return resources;
+        return map;
     }
 
-    public TileType GetTile(int x, int y)
+    public void LoadTile(Tile tile)
     {
-        if (!IsPositionValid(x, y)) return TileType.DEFAULT;
+        for (int x = (int)tile.Position.x - 1; x < (int)tile.Position.x + 2; x++)
+        {
+            for(int y = (int)tile.Position.y - 1; y < (int)tile.Position.y + 2; y++)
+            {
+                if (IsPositionValid(x, y))
+                {
+                    landController.DrawLand(map[x, y]);
+                }
+            }
+        }
 
-        return resources[x, y];
+        gameObject.SetActive(false);
+    }
+
+    public Tile GetTile(int x, int y)
+    {
+        if (!IsPositionValid(x, y)) return null;
+
+        return map[x, y];
     }
 
     private Orientation GetCoastOrientation(int x, int y)
     {
-        bool waterOnTop = y + 1 < height && map[x, y + 1] == TileType.WATER;
-        bool waterOnBottom = y - 1 >= 0 && map[x, y - 1] == TileType.WATER;
-        bool waterOnLeft = x - 1 >= 0 && map[x - 1, y] == TileType.WATER;
-        bool waterOnRight = x + 1 < width && map[x + 1, y] == TileType.WATER;
+        bool waterOnTop = y + 1 < height && map[x, y + 1].TileType == TileType.WATER;
+        bool waterOnBottom = y - 1 >= 0 && map[x, y - 1].TileType == TileType.WATER;
+        bool waterOnLeft = x - 1 >= 0 && map[x - 1, y].TileType == TileType.WATER;
+        bool waterOnRight = x + 1 < width && map[x + 1, y].TileType == TileType.WATER;
 
         if(waterOnBottom && waterOnTop)
         {
