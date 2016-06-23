@@ -14,7 +14,16 @@ public class MapGenerator : MonoBehaviour
     public bool useRandomSeed;
 
     [Range(0, 100)]
-    public int fillPercentage;
+    public int fillPercentage = 50;
+
+    [Range(0, 100)]
+    public int forestPercentage = 50;
+
+    [Range(0, 100)]
+    public int mountainPercentage = 5;
+
+    [Range(0, 100)]
+    public int coastPercentage = 20;
 
     private GameObject[,] childs;
     private GameObject selectedChild;
@@ -112,9 +121,9 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                if (map[x, y] == TileType.PLAIN)
+                if (map[x, y] != TileType.WATER)
                 {
-                    resources[x, y] = random.Next(0, 100) < 50 ? TileType.FOREST : TileType.PLAIN;
+                    resources[x, y] = random.Next(0, 100) < forestPercentage ? TileType.FOREST : TileType.PLAIN;
                 }
             }
         }
@@ -130,7 +139,7 @@ public class MapGenerator : MonoBehaviour
             {
                 if (map[x, y] != TileType.WATER)
                 {
-                    resources[x, y] = random.Next(0, 100) > 95 ? TileType.MOUNTAIN : resources[x, y];
+                    resources[x, y] = random.Next(0, 100) < mountainPercentage ? TileType.MOUNTAIN : resources[x, y];
                 }
             }
         }
@@ -147,7 +156,7 @@ public class MapGenerator : MonoBehaviour
                 if (map[x, y] != TileType.WATER)
                 {
                     if (GetCoastOrientation(x, y) != Orientation.DEFAULT)
-                        resources[x, y] = random.Next(0, 100) > 80 ? TileType.COAST : resources[x, y];
+                        resources[x, y] = random.Next(0, 100) < coastPercentage ? TileType.COAST : resources[x, y];
                 }
             }
         }

@@ -21,8 +21,10 @@ public class LandController : MonoBehaviour
                 GameObject land = new GameObject("Land-" + ++landCount);
                 land.transform.parent = transform;
                 land.transform.position = new Vector3(x + 0.5f, y + 0.5f, 0);
+
                 LandGenerator generator = land.AddComponent<LandGenerator>();
-                generator.GenerateLand(resources[x,y], x, y);
+                generator.resourceConcentration = 90;
+                generator.GenerateLand(resources[x,y], x, y, mapGenerator.seed);
                 land.SetActive(false);
             }
         }
