@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
-using TileType = LandController.LandType;
-using Orientation = LandController.Orientation;
+using TileType = TileController.LandType;
+using Orientation = TileController.Orientation;
 using System;
 
 public class MapGenerator : MonoBehaviour
@@ -41,6 +41,15 @@ public class MapGenerator : MonoBehaviour
         GenerateMountain();
         GenerateCoast();
         DrawResources();
+        GenerateLands();
+    }
+
+    void GenerateLands()
+    {
+        GameObject lands = new GameObject("Lands");
+        lands.transform.position = Vector3.zero;
+        LandController controller = lands.AddComponent<LandController>();
+        controller.map = gameObject;
     }
 
     void SetCamera()
@@ -175,7 +184,7 @@ public class MapGenerator : MonoBehaviour
 
                     tile.transform.position = position;
                     tile.transform.parent = transform;
-                    LandController controller = tile.GetComponent<LandController>();
+                    TileController controller = tile.GetComponent<TileController>();
                     controller.SetSprite("Sprites/" + map[x, y].ToString().ToLower());
                     controller.SetPosition(x, y);
 
@@ -206,7 +215,7 @@ public class MapGenerator : MonoBehaviour
                         break;
                 }
 
-                childs[x, y].GetComponent<LandController>().SetLandType(resources[x, y], orientation);
+                childs[x, y].GetComponent<TileController>().SetLandType(resources[x, y], orientation);
             }
         }
     }
@@ -220,6 +229,18 @@ public class MapGenerator : MonoBehaviour
         trueConditionCount += (x + 1 < width && map[x + 1, y] == TileType.WATER) ? 1 : 0;
 
         return trueConditionCount > 2;
+    }
+
+    public TileType[,] GetMap()
+    {
+        return resources;
+    }
+
+    public TileType GetTile(int x, int y)
+    {
+        if (!IsPositionValid(x, y)) return TileType.DEFAULT;
+
+        return resources[x, y];
     }
 
     private Orientation GetCoastOrientation(int x, int y)

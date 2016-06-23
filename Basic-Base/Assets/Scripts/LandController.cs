@@ -1,85 +1,30 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Linq;
+using TileType = TileController.LandType;
 
 public class LandController : MonoBehaviour
 {
-    private int xPosition;
-    private int yPosition;
-    private LandType type;
-    private GameObject icon;
+    public GameObject map;
+
+    private TileType[,] resources;
 
     void Start()
     {
-    }
+        MapGenerator mapGenerator = map.GetComponent<MapGenerator>();
+        resources = mapGenerator.GetMap();
 
-    void OnMouseEnter()
-    {
-        transform.parent.GetComponent<MapGenerator>().SelectTile(xPosition, yPosition);
-    }
-
-    public void SetPosition(int x, int y)
-    {
-        xPosition = x;
-        yPosition = y;
-    }
-
-    public void SetLandType(LandType type, Orientation orientation = Orientation.DEFAULT)
-    {
-        this.type = type;
-        icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
-        icon.transform.parent = transform;
-        icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
-        icon.GetComponent<IconController>().SetSprite("Sprites/" + type.ToString().ToLower());
-        icon.transform.localEulerAngles = OrientationToVector(orientation);
-    }
-
-    public void SetSprite(string sprite)
-    {
-        GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(sprite);
-    }
-
-    Vector3 OrientationToVector(Orientation orientation)
-    {
-        switch (orientation)
+        int landCount = 0;
+        for (int x = 0; x < mapGenerator.width; x++)
         {
-            case Orientation.BOTTOM:
-            case Orientation.BOTTOM_LEFT:
-                return new Vector3(0, 0, 90);
-
-            case Orientation.RIGHT:
-            case Orientation.BOTTOM_RIGHT:
-                return new Vector3(0, 0, 180);
-
-            case Orientation.TOP:
-            case Orientation.TOP_RIGHT:
-                return new Vector3(0, 0, -90);
-
-            default:
-                return new Vector3(0, 0, 0);
+            for (int y = 0; y < mapGenerator.height; y++)
+            {
+                GameObject land = new GameObject("Land-" + ++landCount);
+                land.transform.parent = transform;
+                land.transform.position = new Vector3(x + 0.5f, y + 0.5f, 0);
+                LandGenerator generator = land.AddComponent<LandGenerator>();
+                generator.GenerateLand(resources[x,y], x, y);
+                land.SetActive(false);
+            }
         }
-    }
-    
-    public enum LandType
-    {
-        WATER,
-        PLAIN,
-        FOREST,
-        MOUNTAIN,
-        COAST,
-        COAST_CORNER,
-        COAST_END
-    }
-
-    public enum Orientation
-    {
-        DEFAULT,
-        TOP,
-        BOTTOM,
-        LEFT,
-        RIGHT,
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT
     }
 }
