@@ -4,7 +4,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class MoveCamera : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
     public int mapHeight;
     public int mapWidth;
@@ -52,5 +52,10 @@ public class MoveCamera : MonoBehaviour
         {
             if (Camera.main.orthographicSize > 2) Camera.main.orthographicSize--;
         }
+    }
+
+    public void SetPosition(Vector3 position)
+    {
+        Camera.main.transform.position = position;
     }
 }

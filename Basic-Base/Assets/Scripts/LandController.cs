@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
 using System.Linq;
-using TileType = TileController.LandType;
+using LandType = Land.LandType;
 
 public class LandController : MonoBehaviour
 {
     public GameObject map;
 
-    private Tile[,] resources;
+    private Map resources;
     private GameObject[,] childs;
 
     void Start()
     {
-        MapGenerator mapGenerator = map.GetComponent<MapGenerator>();
+        MapController mapGenerator = map.GetComponent<MapController>();
         resources = mapGenerator.GetMap();
 
         childs = new GameObject[mapGenerator.width, mapGenerator.height];
@@ -24,13 +24,9 @@ public class LandController : MonoBehaviour
                 GameObject land = new GameObject("Land-" + ++landCount);
                 land.transform.parent = transform;
                 land.transform.position = new Vector3(x + 0.5f, y + 0.5f, 0);
-
-                LandGenerator generator = land.AddComponent<LandGenerator>();
-                generator.resourceConcentration = 90;
-                generator.GenerateLand(resources, resources[x, y].Position, mapGenerator.seed);
-                childs[x, y] = land;
-
                 land.SetActive(false);
+                
+                childs[x, y] = land;
             }
         }
     }
@@ -40,7 +36,31 @@ public class LandController : MonoBehaviour
         GameObject land = childs[(int)tile.Position.x, (int)tile.Position.y];
         land.SetActive(true);
 
-        LandGenerator generator = land.GetComponent<LandGenerator>();
-        generator.DrawLand(tile);
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 10; y++)
+            {
+                GameObject landPiece = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
+                landPiece.transform.position = new Vector3(tile.Position.x + 0.05f + x * 0.1f, tile.Position.y + 0.05f + y * 0.1f, 0);
+                landPiece.transform.parent = transform;
+                landPiece.transform.localScale = new Vector3(1, 1, 1);
+
+                SpriteRenderer renderer = landPiece.GetComponent<SpriteRenderer>();
+                string path = tile.LandType != LandType.WATER
+                    ? LandType.GRASS.ToString().ToLower()
+                    : LandType.WATER.ToString().ToLower();
+
+                renderer.sprite = Resources.Load<Sprite>("Sprites/LandTiles/" + path);
+
+                LandType landType = resources.GetLand(x, y).GetLandPiece(x, y).LandType;
+
+                if (landType == LandType.GRASS || landType == LandType.WATER) continue;
+
+                GameObject icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
+                icon.transform.parent = landPiece.transform;
+                icon.transform.position = landPiece.transform.position + Vector3.back;
+                icon.GetComponent<IconController>().SetSprite("Sprites/LandTiles/" + landType.ToString().ToLower());
+            }
+        }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
-using TileType = TileController.LandType;
-using Orientation = TileController.Orientation;
-using LandType = LandGenerator.LandPieceType;
+using System.Collections.Generic;
+using TileType = Map.TileType;
+using Orientation = Map.Orientation;
+using LandType = Land.LandType;
 
 public class Tile
 {
@@ -13,4 +13,6 @@ public class Tile
     public Orientation Orientation { get; set; }
 
     public Vector2 Position { get; set; }
+
+    public List<string> Icons { get; set; }
 }
