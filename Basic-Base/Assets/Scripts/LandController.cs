@@ -48,10 +48,15 @@ public class LandController : MonoBehaviour
             };
             
             if (borders != null && borders == border) return;
+
+            int yMove = borders.Top < border.Top ? 1 : (borders.Top > border.Top) ? -1 : 0;
+            int xMove = borders.Right < border.Right ? 1 : (borders.Right > border.Right) ? -1 : 0;
+
+            Vector2 move = new Vector2(xMove, yMove);
+            Debug.Log(move.ToString());
+            MoveLandView(move, border);        
             
             borders = border;
-            
-        
         }
     }
 
@@ -87,6 +92,43 @@ public class LandController : MonoBehaviour
                 icon.GetComponent<IconController>().SetSprite("Sprites/" + landType.ToString().ToLower());
             }
         }
+    }
+
+    private void MoveLandView(Vector2 move, CameraBorder border)
+    {
+        if(move.x > 0)
+        {
+            for (int i = 0; i < 3; i++) ActiveLand(border.Right, border.Bottom + i);
+            for (int i = 0; i < 3; i++) childs[border.Left - 1, border.Bottom + i].SetActive(false);
+        }
+
+        if (move.x < 0)
+        {
+            for (int i = 0; i < 3; i++) ActiveLand(border.Left, border.Bottom + i);
+            for (int i = 0; i < 3; i++) childs[border.Right + 1, border.Bottom + i].SetActive(false);
+        }
+
+        if (move.y > 0)
+        {
+            for (int i = -1; i < 4; i++) ActiveLand(border.Left - 1 + i, border.Top);
+            for (int i = -1; i < 4; i++) childs[border.Left - 1 + i, border.Bottom - 1].SetActive(false);
+        }
+
+        if (move.y < 0)
+        {
+            for (int i = -1; i < 4; i++) ActiveLand(border.Left - 1 + i, border.Bottom);
+            for (int i = -1; i < 4; i++) childs[border.Left - 1 + i, border.Top + 1].SetActive(false);
+        }
+    }
+
+    private void ActiveLand(int x, int y)
+    {
+        if (!resources.IsPositionValid(x, y)) return;
+
+        if (childs[x, y].transform.childCount < 1)
+            DrawLand(resources.GetTile(x, y));
+        else
+            childs[x, y].SetActive(true);
     }
 
     public struct CameraBorder
