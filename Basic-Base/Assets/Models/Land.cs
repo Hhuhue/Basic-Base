@@ -38,7 +38,7 @@ public class Land
                 break;
 
             case TileType.MOUNTAIN:
-
+                GenerateMountain();
                 break;
 
             case TileType.WATER:
@@ -48,6 +48,7 @@ public class Land
             case TileType.COAST:
             case TileType.COAST_CORNER:
             case TileType.COAST_END:
+                GenerateCoast();
                 break;
         }
 
@@ -104,6 +105,36 @@ public class Land
                 {
                     Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
                     LandType = LandType.WATER
+                };
+            }
+        }
+    }
+
+    private void GenerateCoast()
+    {
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 10; y++)
+            {
+                land[x, y] = new Tile()
+                {
+                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
+                    LandType = LandType.SAND
+                };
+            }
+        }
+    }
+
+    private void GenerateMountain()
+    {
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 10; y++)
+            {
+                land[x, y] = new Tile()
+                {
+                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
+                    LandType = LandType.ROCK
                 };
             }
         }

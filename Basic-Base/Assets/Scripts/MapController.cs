@@ -25,6 +25,7 @@ public class MapController : MonoBehaviour
     private GameObject selectedChild;
     private SpriteRenderer selectorRenderer;
     private LandController landController;
+    private CameraController cameraController;
 
     private Map map;
 
@@ -71,10 +72,10 @@ public class MapController : MonoBehaviour
 
     void SetCamera()
     {
-        CameraController camera = Camera.main.transform.GetComponent<CameraController>();
-        camera.SetPosition(new Vector3(width / 2, height / 2, 0));
-        camera.mapWidth = width;
-        camera.mapHeight = height;
+        cameraController = Camera.main.transform.GetComponent<CameraController>();
+        cameraController.SetPosition(new Vector3(width / 2, height / 2, 0));
+        cameraController.mapWidth = width;
+        cameraController.mapHeight = height;
     }
 
     void SetSelector()
@@ -129,22 +130,23 @@ public class MapController : MonoBehaviour
 
     public void LoadTile(Tile tile)
     {
+        //Test();
         if (Camera.main.transform.position.z > 0) return;
 
-        for (int x = (int)tile.Position.x - 1; x < (int)tile.Position.x + 2; x++)
+        for (int x = (int)tile.Position.x - 2; x < (int)tile.Position.x + 3; x++)
         {
-            for(int y = (int)tile.Position.y - 1; y < (int)tile.Position.y + 2; y++)
+            for (int y = (int)tile.Position.y - 2; y < (int)tile.Position.y + 3; y++)
             {
                 if (map.IsPositionValid(x, y))
                 {
-                    Debug.Log(map.GetTile(x, y).TileType);
                     landController.DrawLand(map.GetTile(x, y));
                 }
             }
         }
 
-        Camera.main.transform.position += new Vector3(0, 0, 6);
-    }    
+        cameraController.ChangeView();
+        cameraController.SetPosition(new Vector3(tile.Position.x + 0.5f, tile.Position.y + 0.5f, -6));
+    }
 
     public void SelectTile(int x, int y)
     {

@@ -8,6 +8,7 @@ public class LandController : MonoBehaviour
 
     private Map resources;
     private GameObject[,] childs;
+    private CameraBorder borders;
 
     void Start()
     {
@@ -31,8 +32,42 @@ public class LandController : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if(States.View == CameraController.CameraView.LAND && CameraController.isPanning)
+        {
+            float cameraSize = Camera.main.orthographicSize;
+            Vector3 cameraPosition = Camera.main.transform.position;
+
+            CameraBorder border = new CameraBorder()
+            {
+                Top = (int)(cameraPosition.y + cameraSize) / 10,
+                Bottom = (int)(cameraPosition.y - cameraSize - 5) / 10,
+                Left = (int)(cameraPosition.x + cameraSize * 2 + 5) / 10,
+                Right = (int)(cameraPosition.x - cameraSize * 2 - 5) / 10,
+            };
+
+            Debug.Log(borders.ToString() + " " + border.ToString());
+
+            if (borders != null && borders == border) return;
+
+            borders = border;
+
+            for (int x = border.Left - 1; x < border.Right + 2; x++)
+            {
+                for (int y = border.Bottom - 1; y < border.Top + 2; y++)
+                {
+                    if (!resources.IsPositionValid(x, y) || childs[x, y].activeSelf) continue;
+
+                    DrawLand(resources.GetTile(x, y));
+                }
+            }
+        }
+    }
+
     public void DrawLand(Tile tile)
     {
+        //Debug.Log("Drawing " + tile.TileType + " at " + tile.Position.x + ", " + tile.Position.y );
         GameObject land = childs[(int)tile.Position.x, (int)tile.Position.y];
         land.SetActive(true);
 
@@ -62,6 +97,32 @@ public class LandController : MonoBehaviour
                 icon.transform.position = landPiece.transform.position + Vector3.back;
                 icon.GetComponent<IconController>().SetSprite("Sprites/" + landType.ToString().ToLower());
             }
+        }
+    }
+
+    public struct CameraBorder
+    {
+        public int Top { get; set; }
+        public int Bottom { get; set; }
+        public int Left { get; set; }
+        public int Right { get; set; }
+
+        public static bool operator ==(CameraBorder border1, CameraBorder border2)
+        {
+            return border1.Top == border2.Top &&
+                   border1.Bottom == border2.Bottom &&
+                   border1.Left == border2.Left &&
+                   border1.Right == border2.Right;
+        }
+
+        public static bool operator !=(CameraBorder border1, CameraBorder border2)
+        {
+            return !(border1 == border2);
+        }
+
+        public string ToString()
+        {
+            return "Top: " + Top + " Bottom: " + Bottom + " Left: " + Left + " Right: " + Right;
         }
     }
 }
