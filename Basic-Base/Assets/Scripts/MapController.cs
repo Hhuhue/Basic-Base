@@ -130,12 +130,11 @@ public class MapController : MonoBehaviour
 
     public void LoadTile(Tile tile)
     {
-        //Test();
         if (Camera.main.transform.position.z > 0) return;
 
         for (int x = (int)tile.Position.x - 2; x < (int)tile.Position.x + 3; x++)
         {
-            for (int y = (int)tile.Position.y - 2; y < (int)tile.Position.y + 3; y++)
+            for (int y = (int)tile.Position.y - 1; y < (int)tile.Position.y + 2; y++)
             {
                 if (map.IsPositionValid(x, y))
                 {

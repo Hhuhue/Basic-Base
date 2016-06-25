@@ -20,7 +20,7 @@ public class CameraController : MonoBehaviour
     {
         float cameraSize = Camera.main.orthographicSize;
         cameraPosition = Camera.main.transform.position;
-        maxSize = (States.View == CameraView.LAND) ? 6 : 10;
+        maxSize = (States.View == CameraView.LAND) ? 5 : 10;
 
         if(cameraSize > maxSize)
         {

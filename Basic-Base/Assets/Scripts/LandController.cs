@@ -43,31 +43,20 @@ public class LandController : MonoBehaviour
             {
                 Top = (int)(cameraPosition.y + cameraSize) / 10,
                 Bottom = (int)(cameraPosition.y - cameraSize - 5) / 10,
-                Left = (int)(cameraPosition.x + cameraSize * 2 + 5) / 10,
-                Right = (int)(cameraPosition.x - cameraSize * 2 - 5) / 10,
+                Right = (int)(cameraPosition.x + cameraSize * 2 + 5) / 10,
+                Left = (int)(cameraPosition.x - cameraSize * 2 - 5) / 10,
             };
-
-            Debug.Log(borders.ToString() + " " + border.ToString());
-
+            
             if (borders != null && borders == border) return;
-
+            
             borders = border;
-
-            for (int x = border.Left - 1; x < border.Right + 2; x++)
-            {
-                for (int y = border.Bottom - 1; y < border.Top + 2; y++)
-                {
-                    if (!resources.IsPositionValid(x, y) || childs[x, y].activeSelf) continue;
-
-                    DrawLand(resources.GetTile(x, y));
-                }
-            }
+            
+        
         }
     }
 
     public void DrawLand(Tile tile)
     {
-        //Debug.Log("Drawing " + tile.TileType + " at " + tile.Position.x + ", " + tile.Position.y );
         GameObject land = childs[(int)tile.Position.x, (int)tile.Position.y];
         land.SetActive(true);
 
