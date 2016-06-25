@@ -3,7 +3,6 @@ using System.Collections;
 
 public class IconController : MonoBehaviour
 {
-    private SpriteRenderer renderer;
 
     void Start()
     {
@@ -11,7 +10,7 @@ public class IconController : MonoBehaviour
 
     public void SetSprite(string path)
     {
-        renderer = GetComponent<SpriteRenderer>();
+        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
         renderer.sprite = Resources.Load<Sprite>(path);
     }
 }

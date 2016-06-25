@@ -23,7 +23,7 @@ public class LandController : MonoBehaviour
             {
                 GameObject land = new GameObject("Land-" + ++landCount);
                 land.transform.parent = transform;
-                land.transform.position = new Vector3(x + 0.5f, y + 0.5f, 0);
+                land.transform.position = new Vector3(x * 10 + 5, y * 10 + 5, -1);
                 land.SetActive(false);
                 
                 childs[x, y] = land;
@@ -43,17 +43,16 @@ public class LandController : MonoBehaviour
                 Vector2 position = tile.Position;
 
                 GameObject landPiece = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
-                landPiece.transform.position = new Vector3(position.x + 0.05f + x * 0.1f, position.y + 0.05f + y * 0.1f, 0);
-                landPiece.transform.parent = transform;
+                landPiece.transform.position = new Vector3(position.x * 10 + x + 0.5f, position.y * 10 + y + 0.5f, -2);
+                landPiece.transform.parent = land.transform;
                 landPiece.transform.localScale = new Vector3(1, 1, 1);
 
                 SpriteRenderer renderer = landPiece.GetComponent<SpriteRenderer>();
-                string path = tile.LandType != LandType.WATER
+                string path = tile.TileType != Map.TileType.WATER
                     ? LandType.GRASS.ToString().ToLower()
                     : LandType.WATER.ToString().ToLower();
 
-                renderer.sprite = Resources.Load<Sprite>("Sprites/LandTiles/" + path);
-                Debug.Log(position.x + " " + position.y + " " + tile.TileType);
+                renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);
                 LandType landType = resources.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y).LandType;
 
                 if (landType == LandType.GRASS || landType == LandType.WATER) continue;

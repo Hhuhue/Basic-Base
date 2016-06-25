@@ -72,7 +72,7 @@ public class MapController : MonoBehaviour
     void SetCamera()
     {
         CameraController camera = Camera.main.transform.GetComponent<CameraController>();
-        camera.SetPosition(new Vector3(width / 2, height / 2, -3));
+        camera.SetPosition(new Vector3(width / 2, height / 2, 0));
         camera.mapWidth = width;
         camera.mapHeight = height;
     }
@@ -81,7 +81,7 @@ public class MapController : MonoBehaviour
     {
         GameObject selector = new GameObject("selector");
         selector.transform.parent = transform;
-        selector.transform.position = new Vector3(0, 0, -10);
+        selector.transform.position = new Vector3(0, 0, 1);
         selectorRenderer = selector.AddComponent<SpriteRenderer>();
         selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
         selectorRenderer.enabled = false;
@@ -100,7 +100,7 @@ public class MapController : MonoBehaviour
             {
                 for (int y = 0; y < height; y++)
                 {
-                    Vector2 position = new Vector2(x + 0.5f, y + 0.5f);
+                    Vector3 position = new Vector3(x + 0.5f, y + 0.5f, 5);
                     GameObject tile = Instantiate(Resources.Load<GameObject>("Prefabs/Tile"));
                     tile.transform.position = position;
                     tile.transform.parent = transform;
@@ -129,18 +129,21 @@ public class MapController : MonoBehaviour
 
     public void LoadTile(Tile tile)
     {
+        if (Camera.main.transform.position.z > 0) return;
+
         for (int x = (int)tile.Position.x - 1; x < (int)tile.Position.x + 2; x++)
         {
             for(int y = (int)tile.Position.y - 1; y < (int)tile.Position.y + 2; y++)
             {
                 if (map.IsPositionValid(x, y))
                 {
+                    Debug.Log(map.GetTile(x, y).TileType);
                     landController.DrawLand(map.GetTile(x, y));
                 }
             }
         }
 
-        gameObject.SetActive(false);
+        Camera.main.transform.position += new Vector3(0, 0, 6);
     }    
 
     public void SelectTile(int x, int y)
@@ -154,7 +157,7 @@ public class MapController : MonoBehaviour
         {
             selectedChild = childs[x, y];
             selectorRenderer.enabled = true;
-            selectorRenderer.transform.position = new Vector3(x + 0.5f, y + 0.5f, -2);
+            selectorRenderer.transform.position = new Vector3(x + 0.5f, y + 0.5f, 1);
         }
     }
 }
