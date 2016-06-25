@@ -4,9 +4,9 @@ using Orientation = Map.Orientation;
 
 public class TileController : MonoBehaviour
 {
+    public Tile tile;
     private int xPosition;
     private int yPosition;
-    public Tile tile;
     private GameObject icon;
 
     void Start()
@@ -32,7 +32,6 @@ public class TileController : MonoBehaviour
 
     public void SetLandType(Tile tile)
     {
-        this.tile = tile;
         icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
         icon.transform.parent = transform;
         icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);

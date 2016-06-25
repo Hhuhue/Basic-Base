@@ -42,6 +42,7 @@ public class Land
                 break;
 
             case TileType.WATER:
+                GenerateWater();
                 break;
 
             case TileType.COAST:
@@ -88,6 +89,21 @@ public class Land
                 {
                     Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
                     LandType = type
+                };
+            }
+        }
+    }
+
+    private void GenerateWater()
+    {
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 10; y++)
+            {
+                land[x, y] = new Tile()
+                {
+                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
+                    LandType = LandType.WATER
                 };
             }
         }

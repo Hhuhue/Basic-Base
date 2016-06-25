@@ -110,6 +110,7 @@ public class MapController : MonoBehaviour
                     type = (type != TileType.WATER) ? TileType.PLAIN : TileType.WATER;
 
                     TileController controller = tile.GetComponent<TileController>();
+                    controller.tile = map.GetTile(x, y);
                     controller.SetSprite(map.GetConfiguration().TileIconPath + type.ToString().ToLower());
                     controller.SetPosition(x, y);
 

@@ -129,8 +129,6 @@ public class Map
                         map[x, y].TileType = number < ratio ? resource : map[x, y].TileType;
                         map[x, y].Icons.Add(config.TileIconPath + map[x, y].TileType.ToString().ToLower());
                     }
-
-                    if(x == 25 && y == 29) Debug.Log(map[x, y].LandType + " " + map[x, y].Orientation);
                 }
             }
         }

@@ -40,8 +40,10 @@ public class LandController : MonoBehaviour
         {
             for (int y = 0; y < 10; y++)
             {
+                Vector2 position = tile.Position;
+
                 GameObject landPiece = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
-                landPiece.transform.position = new Vector3(tile.Position.x + 0.05f + x * 0.1f, tile.Position.y + 0.05f + y * 0.1f, 0);
+                landPiece.transform.position = new Vector3(position.x + 0.05f + x * 0.1f, position.y + 0.05f + y * 0.1f, 0);
                 landPiece.transform.parent = transform;
                 landPiece.transform.localScale = new Vector3(1, 1, 1);
 
@@ -51,15 +53,15 @@ public class LandController : MonoBehaviour
                     : LandType.WATER.ToString().ToLower();
 
                 renderer.sprite = Resources.Load<Sprite>("Sprites/LandTiles/" + path);
-
-                LandType landType = resources.GetLand(x, y).GetLandPiece(x, y).LandType;
+                Debug.Log(position.x + " " + position.y + " " + tile.TileType);
+                LandType landType = resources.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y).LandType;
 
                 if (landType == LandType.GRASS || landType == LandType.WATER) continue;
 
                 GameObject icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
                 icon.transform.parent = landPiece.transform;
                 icon.transform.position = landPiece.transform.position + Vector3.back;
-                icon.GetComponent<IconController>().SetSprite("Sprites/LandTiles/" + landType.ToString().ToLower());
+                icon.GetComponent<IconController>().SetSprite("Sprites/" + landType.ToString().ToLower());
             }
         }
     }
