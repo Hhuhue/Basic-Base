@@ -22,7 +22,5 @@ public class Config
     public int CoastRatio { get; set; }
 
     public string TileIconPath { get; set; }
-
-    public string LandIconPath { get; set; }
 }
 

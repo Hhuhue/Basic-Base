@@ -64,7 +64,6 @@ public class MapController : MonoBehaviour
             Seed = new System.Random(seed.GetHashCode()),
             SmoothCount = smoothCount,
             TileIconPath = "Sprites/",
-            LandIconPath = "Sprites/LandTiles/"
         };
 
         map = new Map(config);

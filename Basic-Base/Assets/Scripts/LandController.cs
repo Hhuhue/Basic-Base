@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Linq;
 using LandType = Land.LandType;
+using Border = Land.Border;
 
 public class LandController : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class LandController : MonoBehaviour
 
     private Map resources;
     private GameObject[,] childs;
-    private CameraBorder borders;
+    private Border borders;
 
     void Start()
     {
@@ -39,7 +40,7 @@ public class LandController : MonoBehaviour
             float cameraSize = Camera.main.orthographicSize;
             Vector3 cameraPosition = Camera.main.transform.position;
 
-            CameraBorder border = new CameraBorder()
+            Border border = new Border()
             {
                 Top = (int)(cameraPosition.y + cameraSize) / 10,
                 Bottom = (int)(cameraPosition.y - cameraSize - 5) / 10,
@@ -53,7 +54,6 @@ public class LandController : MonoBehaviour
             int xMove = borders.Right < border.Right ? 1 : (borders.Right > border.Right) ? -1 : 0;
 
             Vector2 move = new Vector2(xMove, yMove);
-            Debug.Log(move.ToString());
             MoveLandView(move, border);        
             
             borders = border;
@@ -77,12 +77,13 @@ public class LandController : MonoBehaviour
                 landPiece.transform.localScale = new Vector3(1, 1, 1);
 
                 SpriteRenderer renderer = landPiece.GetComponent<SpriteRenderer>();
-                string path = tile.TileType != Map.TileType.WATER
+                LandType landType = resources.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y).LandType;
+
+                string path = landType != LandType.WATER
                     ? LandType.GRASS.ToString().ToLower()
                     : LandType.WATER.ToString().ToLower();
 
-                renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);
-                LandType landType = resources.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y).LandType;
+                renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);                
 
                 if (landType == LandType.GRASS || landType == LandType.WATER) continue;
 
@@ -94,34 +95,34 @@ public class LandController : MonoBehaviour
         }
     }
 
-    private void MoveLandView(Vector2 move, CameraBorder border)
+    private void MoveLandView(Vector2 move, Border border)
     {
         if(move.x > 0)
         {
-            for (int i = 0; i < 3; i++) ActiveLand(border.Right, border.Bottom + i);
-            for (int i = 0; i < 3; i++) childs[border.Left - 1, border.Bottom + i].SetActive(false);
+            for (int i = 0; i < 3; i++) ActivateLand(border.Right, border.Bottom + i);
+            for (int i = 0; i < 3; i++) DesactivateLand(border.Left - 1, border.Bottom + i);
         }
 
         if (move.x < 0)
         {
-            for (int i = 0; i < 3; i++) ActiveLand(border.Left, border.Bottom + i);
-            for (int i = 0; i < 3; i++) childs[border.Right + 1, border.Bottom + i].SetActive(false);
+            for (int i = 0; i < 3; i++) ActivateLand(border.Left, border.Bottom + i);
+            for (int i = 0; i < 3; i++) DesactivateLand(border.Right + 1, border.Bottom + i);
         }
 
         if (move.y > 0)
         {
-            for (int i = -1; i < 4; i++) ActiveLand(border.Left - 1 + i, border.Top);
-            for (int i = -1; i < 4; i++) childs[border.Left - 1 + i, border.Bottom - 1].SetActive(false);
+            for (int i = 0; i < 4; i++) ActivateLand(border.Left + i, border.Top);
+            for (int i = 0; i < 4; i++) DesactivateLand(border.Left + i, border.Bottom - 1);
         }
 
         if (move.y < 0)
         {
-            for (int i = -1; i < 4; i++) ActiveLand(border.Left - 1 + i, border.Bottom);
-            for (int i = -1; i < 4; i++) childs[border.Left - 1 + i, border.Top + 1].SetActive(false);
+            for (int i = 0; i < 4; i++) ActivateLand(border.Left + i, border.Bottom);
+            for (int i = 0; i < 4; i++) DesactivateLand(border.Left + i, border.Top + 1);
         }
     }
 
-    private void ActiveLand(int x, int y)
+    private void ActivateLand(int x, int y)
     {
         if (!resources.IsPositionValid(x, y)) return;
 
@@ -129,31 +130,12 @@ public class LandController : MonoBehaviour
             DrawLand(resources.GetTile(x, y));
         else
             childs[x, y].SetActive(true);
-    }
+    }    
 
-    public struct CameraBorder
+    private void DesactivateLand(int x, int y)
     {
-        public int Top { get; set; }
-        public int Bottom { get; set; }
-        public int Left { get; set; }
-        public int Right { get; set; }
+        if (!resources.IsPositionValid(x, y)) return;
 
-        public static bool operator ==(CameraBorder border1, CameraBorder border2)
-        {
-            return border1.Top == border2.Top &&
-                   border1.Bottom == border2.Bottom &&
-                   border1.Left == border2.Left &&
-                   border1.Right == border2.Right;
-        }
-
-        public static bool operator !=(CameraBorder border1, CameraBorder border2)
-        {
-            return !(border1 == border2);
-        }
-
-        public string ToString()
-        {
-            return "Top: " + Top + " Bottom: " + Bottom + " Left: " + Left + " Right: " + Right;
-        }
+        childs[x, y].SetActive(false);
     }
 }
