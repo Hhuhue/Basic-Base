@@ -100,7 +100,7 @@ public class Map
 
     void GenerateResource(int ratio, TileType resource)
     {
-        System.Random random = new System.Random(config.Seed.GetHashCode());
+        System.Random random = config.Seed;
 
         for (int x = 0; x < config.Width; x++)
         {

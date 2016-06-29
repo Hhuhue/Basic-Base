@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using TileType = Map.TileType;
 using Orientation = Map.Orientation;
@@ -121,16 +122,17 @@ public class Land
 
         int waterThickness = random.Next(0, 2);
         int sandThickness = random.Next(1, 3);
+        bool isCoastEnd = tile.TileType == TileType.COAST_END;
 
-        Border water = GetCoastBorder(waterThickness);
-        Border sand = GetCoastBorder(sandThickness + waterThickness);
+        Border[] water = GetCoastBorder(waterThickness, tile.Orientation, isCoastEnd);
+        Border[] sand = GetCoastBorder(sandThickness + waterThickness, tile.Orientation, isCoastEnd);
 
         for (int x = 0; x < 10; x++)
         {
             for (int y = 0; y < 10; y++)
             {
-                LandType type = water.IsPositionWithinBorder(x, y) ? LandType.WATER
-                    : sand.IsPositionWithinBorder(x, y) ? LandType.SAND
+                LandType type = water.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.WATER
+                    : sand.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.SAND
                     : LandType.GRASS;
 
                 land[x, y] = new Tile()
@@ -175,24 +177,76 @@ public class Land
 
     }
 
-    private Border GetCoastBorder(int thickness)
+    private Border[] GetCoastBorder(int thickness, Orientation orientation, bool isCoastEnd)
     {
-        switch (tile.Orientation)
+        switch (orientation)
         {
             case Orientation.TOP:
-                return new Border(9, 9 - thickness, 0, 9);
+                return (!isCoastEnd) ? new [] { new Border(9, 9 - thickness, 0, 9)}
+                    : new []
+                        {
+                            GetCoastBorder(thickness, Orientation.TOP, false)[0],
+                            GetCoastBorder(thickness, Orientation.RIGHT, false)[0],
+                            GetCoastBorder(thickness, Orientation.LEFT, false)[0]
+                        };
 
             case Orientation.BOTTOM:
-                return new Border(thickness, 0, 0, 9);
+                return (!isCoastEnd) ? new [] { new Border(thickness, 0, 0, 9)}
+                : new[]
+                        {
+                            GetCoastBorder(thickness, Orientation.BOTTOM, false)[0],
+                            GetCoastBorder(thickness, Orientation.RIGHT, false)[0],
+                            GetCoastBorder(thickness, Orientation.LEFT, false)[0]
+                        };
 
             case Orientation.LEFT:
-                return new Border(9, 0, 0, thickness);
+                return (!isCoastEnd) ? new [] { new Border(9, 0, 0, thickness)}
+                : new[]
+                        {
+                            GetCoastBorder(thickness, Orientation.LEFT, false)[0],
+                            GetCoastBorder(thickness, Orientation.TOP, false)[0],
+                            GetCoastBorder(thickness, Orientation.BOTTOM, false)[0]
+                        };
 
             case Orientation.RIGHT:
-                return new Border(9, 0, 9 - thickness, 9);
+                return (!isCoastEnd) ? new[] { new Border(9, 0, 9 - thickness, 9)}
+                : new[]
+                        {
+                            GetCoastBorder(thickness, Orientation.RIGHT, false)[0],
+                            GetCoastBorder(thickness, Orientation.TOP, false)[0],
+                            GetCoastBorder(thickness, Orientation.BOTTOM, false)[0]
+                        };
+
+            case Orientation.TOP_LEFT:
+                return new []
+                {
+                    GetCoastBorder(thickness, Orientation.TOP, false)[0],
+                    GetCoastBorder(thickness, Orientation.LEFT, false)[0]
+                };
+
+            case Orientation.TOP_RIGHT:
+                return new []
+                {
+                    GetCoastBorder(thickness, Orientation.TOP, false)[0],
+                    GetCoastBorder(thickness, Orientation.RIGHT, false)[0]
+                };
+
+            case Orientation.BOTTOM_LEFT:
+                return new [] 
+                {
+                    GetCoastBorder(thickness, Orientation.BOTTOM, false)[0],
+                    GetCoastBorder(thickness, Orientation.LEFT, false)[0]
+                };
+
+            case Orientation.BOTTOM_RIGHT:
+                return new []
+                {
+                    GetCoastBorder(thickness, Orientation.BOTTOM, false)[0],
+                    GetCoastBorder(thickness, Orientation.RIGHT, false)[0]
+                };
 
             default:
-                return new Border();
+                return new [] { new Border()};
         }
     }
 
@@ -203,7 +257,7 @@ public class Land
         public int Left { get; set; }
         public int Right { get; set; }
 
-        public Border(int top, int bottom, int left, int right)
+        public Border(int top, int bottom, int left, int right) : this()
         {
             Top = top;
             Bottom = bottom;
