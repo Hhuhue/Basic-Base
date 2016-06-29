@@ -70,11 +70,7 @@ public class Land
                     : number < 90 ? LandType.TREE
                     : LandType.GRASS;
 
-                land[x, y] = new Tile()
-                {
-                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
-                    LandType = type
-                };
+                SetLandPiece(x, y, type);
             }
         }
     }
@@ -92,11 +88,7 @@ public class Land
                     : number < 4 ? LandType.PINE
                     : LandType.GRASS;
 
-                land[x, y] = new Tile()
-                {
-                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
-                    LandType = type
-                };
+                SetLandPiece(x, y, type);
             }
         }
     }
@@ -107,11 +99,7 @@ public class Land
         {
             for (int y = 0; y < 10; y++)
             {
-                land[x, y] = new Tile()
-                {
-                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
-                    LandType = LandType.WATER
-                };
+                SetLandPiece(x, y, LandType.WATER);
             }
         }
     }
@@ -124,52 +112,48 @@ public class Land
         int sandThickness = random.Next(1, 3);
         bool isCoastEnd = tile.TileType == TileType.COAST_END;
 
-        Border[] water = GetCoastBorder(waterThickness, tile.Orientation, isCoastEnd);
-        Border[] sand = GetCoastBorder(sandThickness + waterThickness, tile.Orientation, isCoastEnd);
+        Border[] waterZones = GetCoastBorder(waterThickness, tile.Orientation, isCoastEnd);
+        Border[] sandZones = GetCoastBorder(sandThickness + waterThickness, tile.Orientation, isCoastEnd);
 
         for (int x = 0; x < 10; x++)
         {
             for (int y = 0; y < 10; y++)
             {
-                LandType type = water.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.WATER
-                    : sand.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.SAND
+                LandType type = waterZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.WATER
+                    : sandZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.SAND
                     : LandType.GRASS;
 
-                land[x, y] = new Tile()
-                {
-                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
-                    LandType = type
-                };
+                SetLandPiece(x, y, type);
             }
         }        
     }
 
-    private string ToString()
-    {
-        string s = "";
-        for (int x = 0; x < 10; x++)
-        {
-            for (int y = 0; y < 10; y++)
-            {
-                s += "[" + x + ", " + y + "] = " + land[x, y].LandType + " | ";
-            }
-        }
-        return s;
-    }
-
     private void GenerateMountain()
     {
+        System.Random random = map.GetConfiguration().Seed;
+
+        Border mountainZone = new Border(9 - random.Next(0, 2), random.Next(0, 2), random.Next(0, 2), 9- random.Next(0, 2)); 
+
         for (int x = 0; x < 10; x++)
         {
             for (int y = 0; y < 10; y++)
             {
-                land[x, y] = new Tile()
-                {
-                    Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
-                    LandType = LandType.ROCK
-                };
+                LandType type = mountainZone.IsPositionWithinBorder(x, y) ? LandType.MOUNTAIN 
+                    : random.Next(0, 100) < 40 ? LandType.ROCK
+                    : LandType.GRASS;
+                
+                SetLandPiece(x, y, type);
             }
         }
+    }
+
+    private void SetLandPiece(int x, int y, LandType type)
+    {
+        land[x, y] = new Tile()
+        {
+            Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
+            LandType = type
+        };
     }
 
     private void SmoothLand()
