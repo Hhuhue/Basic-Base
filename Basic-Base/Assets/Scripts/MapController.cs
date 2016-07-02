@@ -45,7 +45,7 @@ public class MapController : MonoBehaviour
         GameObject lands = new GameObject("Lands");
         lands.transform.position = Vector3.zero;
         LandController controller = lands.AddComponent<LandController>();
-        controller.map = gameObject;
+        controller.mapUI = gameObject;
         landController = controller;
     }
 
@@ -110,6 +110,7 @@ public class MapController : MonoBehaviour
                     type = (type != TileType.WATER) ? TileType.PLAIN : TileType.WATER;
 
                     TileController controller = tile.GetComponent<TileController>();
+                    controller.map = gameObject;
                     controller.tile = map.GetTile(x, y);
                     controller.SetSprite(map.GetConfiguration().TileIconPath + type.ToString().ToLower());
                     controller.SetPosition(x, y);

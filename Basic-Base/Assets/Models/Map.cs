@@ -45,6 +45,14 @@ public class Map
 
         return lands[x, y];
     }
+    
+    public bool IsOrientationCorner(Orientation orientation)
+    {
+        return orientation == Orientation.BOTTOM_LEFT ||
+               orientation == Orientation.BOTTOM_RIGHT ||
+               orientation == Orientation.TOP_LEFT ||
+               orientation == Orientation.TOP_RIGHT;
+    }
 
     private void RandomFillMap()
     {
@@ -188,14 +196,6 @@ public class Map
         trueConditionCount += (x + 1 < config.Width && map[x + 1, y].TileType == TileType.WATER) ? 1 : 0;
 
         return trueConditionCount > 2;
-    }
-
-    bool IsOrientationCorner(Orientation orientation)
-    {
-        return orientation == Orientation.BOTTOM_LEFT ||
-               orientation == Orientation.BOTTOM_RIGHT ||
-               orientation == Orientation.TOP_LEFT ||
-               orientation == Orientation.TOP_RIGHT;
     }
 
     public enum TileType

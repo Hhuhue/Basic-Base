@@ -10,19 +10,22 @@ public class Land
     private Tile tile;
     private Map map;
 
+    private const int LAND_HEIGHT = 10;
+    private const int LAND_WIDTH = 10;
+
     public Land(Map map, Tile tile)
     {
         this.map = map;
         this.tile = tile;
 
-        land = new Tile[10, 10];
+        land = new Tile[LAND_WIDTH, LAND_HEIGHT];
 
         GenerateLand();
     }
 
     public Tile GetLandPiece(int x, int y)
     {
-        if (x < 0 || x > 9 || y < 0 || y > 9) return null;
+        if (x < 0 || x >= LAND_WIDTH || y < 0 || y >= LAND_HEIGHT) return null;
 
         return land[x, y];
     }
@@ -60,9 +63,9 @@ public class Land
     {
         System.Random random = map.GetConfiguration().Seed;
 
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < LAND_WIDTH; x++)
         {
-            for (int y = 0; y < 10; y++)
+            for (int y = 0; y < LAND_HEIGHT; y++)
             {
                 int number = random.Next(0, 100);
                 LandType type = number < 2 ? LandType.ROCK
@@ -79,9 +82,9 @@ public class Land
     {
         System.Random random = map.GetConfiguration().Seed;
 
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < LAND_WIDTH; x++)
         {
-            for (int y = 0; y < 10; y++)
+            for (int y = 0; y < LAND_HEIGHT; y++)
             {
                 int number = random.Next(0, 100);
                 LandType type = number < 2 ? LandType.ROCK
@@ -95,9 +98,9 @@ public class Land
 
     private void GenerateWater()
     {
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < LAND_WIDTH; x++)
         {
-            for (int y = 0; y < 10; y++)
+            for (int y = 0; y < LAND_HEIGHT; y++)
             {
                 SetLandPiece(x, y, LandType.WATER);
             }
@@ -115,9 +118,9 @@ public class Land
         Border[] waterZones = GetCoastBorder(waterThickness, tile.Orientation, isCoastEnd);
         Border[] sandZones = GetCoastBorder(sandThickness + waterThickness, tile.Orientation, isCoastEnd);
 
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < LAND_WIDTH; x++)
         {
-            for (int y = 0; y < 10; y++)
+            for (int y = 0; y < LAND_HEIGHT; y++)
             {
                 LandType type = waterZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.WATER
                     : sandZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.SAND
@@ -132,17 +135,33 @@ public class Land
     {
         System.Random random = map.GetConfiguration().Seed;
 
-        Border mountainZone = new Border(9 - random.Next(0, 2), random.Next(0, 2), random.Next(0, 2), 9- random.Next(0, 2)); 
+        Border[] mountainZones = GenerateMountainLayers(); 
 
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < LAND_WIDTH; x++)
         {
-            for (int y = 0; y < 10; y++)
+            for (int y = 0; y < LAND_HEIGHT; y++)
             {
-                LandType type = mountainZone.IsPositionWithinBorder(x, y) ? LandType.MOUNTAIN 
+                LandType type = mountainZones.Any(border => border.IsPositionOnBorder(x, y)) ? LandType.MOUNTAIN_FACE 
+                    : mountainZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.MOUNTAIN_TOP
                     : random.Next(0, 100) < 40 ? LandType.ROCK
                     : LandType.GRASS;
-                
+
                 SetLandPiece(x, y, type);
+            }
+        }
+
+        foreach(Border layer in mountainZones)
+        {
+            for (int x = layer.Left; x <= layer.Right; x++)
+            {
+                for (int y = layer.Bottom; y <= layer.Top; y++)
+                {
+                    Orientation orientation = GetMountainFaceOrientation(x, y, layer);
+                    LandType type = map.IsOrientationCorner(orientation) ? LandType.MOUNTAIN_CORNER : land[x, y].LandType;
+
+                    land[x, y].LandType = type;
+                    land[x, y].Orientation = type == LandType.MOUNTAIN_TOP ? Orientation.DEFAULT : orientation;
+                }
             }
         }
     }
@@ -159,6 +178,55 @@ public class Land
     private void SmoothLand()
     {
 
+    }
+
+    private Border[] GenerateMountainLayers()
+    {
+        System.Random random = map.GetConfiguration().Seed;
+        int layerCount = random.Next(1, 4);
+        Border[] layers = new Border[layerCount];
+        Border lastBorder = new Border(LAND_HEIGHT - 1, -1, -1, LAND_WIDTH - 1);
+
+        for(int i = 0; i < layerCount; i++)
+        {
+            Border mountainZone = new Border()
+            {
+                Top = lastBorder.Top - random.Next(1, 3),
+                Bottom = lastBorder.Bottom + random.Next(1, 3),
+                Left = lastBorder.Left + random.Next(1, 3),
+                Right = lastBorder.Right - random.Next(1, 3)
+            };
+            layers[i] = mountainZone;
+            lastBorder = mountainZone;
+        }
+
+        return layers;
+    }
+
+    private Orientation GetMountainFaceOrientation(int x ,int y, Border border)
+    {
+        if (land[x, y].LandType == LandType.MOUNTAIN_TOP) return Orientation.DEFAULT;
+
+        bool borderOnTop = y + 1 <= border.Top && border.IsPositionOnBorder(x, y + 1);
+        bool borderOnBottom = y - 1 >= border.Bottom && border.IsPositionOnBorder(x, y - 1);
+        bool borderOnLeft = x - 1 >= border.Left && border.IsPositionOnBorder(x - 1, y);
+        bool borderOnRight = x + 1 <= border.Right && border.IsPositionOnBorder(x + 1, y);
+
+        if (borderOnTop && borderOnBottom)
+            return (x - 1 < border.Left) ? Orientation.LEFT : Orientation.RIGHT;
+
+        if (borderOnLeft && borderOnRight)
+            return (y - 1 < border.Bottom) ? Orientation.BOTTOM : Orientation.TOP;
+
+        if (borderOnBottom && borderOnRight) return Orientation.TOP_LEFT;
+
+        if (borderOnBottom && borderOnLeft) return Orientation.TOP_RIGHT;
+
+        if (borderOnTop && borderOnRight) return Orientation.BOTTOM_LEFT;
+
+        if (borderOnTop && borderOnLeft) return Orientation.BOTTOM_RIGHT;
+
+        return Orientation.DEFAULT;
     }
 
     private Border[] GetCoastBorder(int thickness, Orientation orientation, bool isCoastEnd)
@@ -254,6 +322,11 @@ public class Land
             return x >= Left && x <= Right && y >= Bottom && y <= Top;
         }
 
+        public bool IsPositionOnBorder(int x, int y)
+        {
+            return IsPositionWithinBorder(x, y) && (x == Left  || x == Right || y == Bottom || y == Top);
+        }
+
         public static bool operator ==(Border border1, Border border2)
         {
             return border1.Top == border2.Top &&
@@ -282,7 +355,10 @@ public class Land
         GRASS,
         WATER,
         CLIFF,
-        MOUNTAIN
+        CLIFF_CORNER,
+        MOUNTAIN_FACE,
+        MOUNTAIN_CORNER,
+        MOUNTAIN_TOP,
     }
 }
 

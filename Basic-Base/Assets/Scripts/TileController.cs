@@ -5,6 +5,8 @@ using Orientation = Map.Orientation;
 public class TileController : MonoBehaviour
 {
     public Tile tile;
+    public GameObject map;
+
     private int xPosition;
     private int yPosition;
     private GameObject icon;
@@ -16,12 +18,13 @@ public class TileController : MonoBehaviour
 
     void OnMouseDown()
     {
-        transform.parent.GetComponent<MapController>().LoadTile(tile);
+        if(tile.TileType != Map.TileType.DEFAULT)
+            map.GetComponent<MapController>().LoadTile(tile);
     }
     
     void OnMouseEnter()
     {
-        transform.parent.GetComponent<MapController>().SelectTile(xPosition, yPosition);
+        map.GetComponent<MapController>().SelectTile(xPosition, yPosition);
     }
 
     public void SetPosition(int x, int y)
@@ -44,7 +47,7 @@ public class TileController : MonoBehaviour
         GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(sprite);
     }
 
-    Vector3 OrientationToVector(Orientation orientation)
+    public static Vector3 OrientationToVector(Orientation orientation)
     {
         switch (orientation)
         {

@@ -5,16 +5,16 @@ using Border = Land.Border;
 
 public class LandController : MonoBehaviour
 {
-    public GameObject map;
+    public GameObject mapUI;
 
-    private Map resources;
+    private Map map;
     private GameObject[,] childs;
     private Border borders;
 
     void Start()
     {
-        MapController mapGenerator = map.GetComponent<MapController>();
-        resources = mapGenerator.GetMap();
+        MapController mapGenerator = mapUI.GetComponent<MapController>();
+        map = mapGenerator.GetMap();
 
         childs = new GameObject[mapGenerator.width, mapGenerator.height];
 
@@ -62,35 +62,38 @@ public class LandController : MonoBehaviour
 
     public void DrawLand(Tile tile)
     {
-        GameObject land = childs[(int)tile.Position.x, (int)tile.Position.y];
-        land.SetActive(true);
+        GameObject child = childs[(int)tile.Position.x, (int)tile.Position.y];
+        child.SetActive(true);
+        Land land = map.GetLand((int)tile.Position.x, (int)tile.Position.y);
 
         for (int x = 0; x < 10; x++)
         {
             for (int y = 0; y < 10; y++)
             {
                 Vector2 position = tile.Position;
+                Tile landPiece = map.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y);
 
-                GameObject landPiece = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
-                landPiece.transform.position = new Vector3(position.x * 10 + x + 0.5f, position.y * 10 + y + 0.5f, -2);
-                landPiece.transform.parent = land.transform;
-                landPiece.transform.localScale = new Vector3(1, 1, 1);
+                GameObject landPieceUI = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
+                landPieceUI.transform.position = new Vector3(position.x * 10 + x + 0.5f, position.y * 10 + y + 0.5f, -2);
+                landPieceUI.transform.parent = child.transform;
+                landPieceUI.transform.localScale = new Vector3(1, 1, 1);
 
-                SpriteRenderer renderer = landPiece.GetComponent<SpriteRenderer>();
-                LandType landType = resources.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y).LandType;
+                SpriteRenderer renderer = landPieceUI.GetComponent<SpriteRenderer>();
+                LandType landType = landPiece.LandType;
 
                 string path = landType != LandType.WATER
                     ? LandType.GRASS.ToString().ToLower()
                     : LandType.WATER.ToString().ToLower();
 
-                renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);                
+                renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);
 
                 if (landType == LandType.GRASS || landType == LandType.WATER) continue;
 
                 GameObject icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
-                icon.transform.parent = landPiece.transform;
-                icon.transform.position = landPiece.transform.position + Vector3.back;
+                icon.transform.parent = landPieceUI.transform;
+                icon.transform.position = landPieceUI.transform.position + Vector3.back;
                 icon.GetComponent<IconController>().SetSprite("Sprites/" + landType.ToString().ToLower());
+                icon.transform.localEulerAngles = TileController.OrientationToVector(landPiece.Orientation);
             }
         }
     }
@@ -124,17 +127,17 @@ public class LandController : MonoBehaviour
 
     private void ActivateLand(int x, int y)
     {
-        if (!resources.IsPositionValid(x, y)) return;
+        if (!map.IsPositionValid(x, y)) return;
 
         if (childs[x, y].transform.childCount < 1)
-            DrawLand(resources.GetTile(x, y));
+            DrawLand(map.GetTile(x, y));
         else
             childs[x, y].SetActive(true);
     }    
 
     private void DesactivateLand(int x, int y)
     {
-        if (!resources.IsPositionValid(x, y)) return;
+        if (!map.IsPositionValid(x, y)) return;
 
         childs[x, y].SetActive(false);
     }
