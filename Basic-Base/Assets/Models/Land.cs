@@ -21,6 +21,7 @@ public class Land
         land = new Tile[LAND_WIDTH, LAND_HEIGHT];
 
         GenerateLand();
+        SmoothLand();
     }
 
     public Tile GetLandPiece(int x, int y)
@@ -177,7 +178,79 @@ public class Land
 
     private void SmoothLand()
     {
+        if (!(tile.TileType == TileType.PLAIN || tile.TileType == TileType.FOREST)) return;
 
+        int xPosition = (int)tile.Position.x;
+        int yPosition = (int)tile.Position.y;
+
+        Tile topTile = map.GetTile(xPosition, yPosition + 1) ?? new Tile();
+        Tile bottomTile = map.GetTile(xPosition, yPosition - 1) ?? new Tile();
+        Tile rightTile = map.GetTile(xPosition + 1, yPosition) ?? new Tile();
+        Tile leftTile = map.GetTile(xPosition - 1, yPosition) ?? new Tile();
+
+        System.Random random = map.GetConfiguration().Seed;
+
+        LandType newType = LandType.DEFAULT;
+        Orientation newOrientation = Orientation.DEFAULT;
+
+        for (int x = 0; x < LAND_WIDTH; x++)
+        {
+            switch (topTile.TileType)
+            {
+                case TileType.WATER:
+                    newType = (x == 0 && leftTile.TileType == TileType.WATER) || (x == LAND_WIDTH - 1 && rightTile.TileType == TileType.WATER) ?
+                        LandType.CLIFF_CORNER : LandType.CLIFF;
+                    newOrientation = (x == 0) ? Orientation.TOP_LEFT : (x == LAND_WIDTH - 1) ? Orientation.TOP_RIGHT : Orientation.TOP;
+                    break;
+
+                case TileType.FOREST:
+                    newType = (random.Next(0, 100) < 70) ? LandType.TREE : land[x, LAND_HEIGHT - 1].LandType;
+                    newOrientation = Orientation.DEFAULT;
+                    break;
+
+                case TileType.MOUNTAIN:
+                    newType = (random.Next(0, 100) < 70) ? LandType.ROCK : land[x, LAND_HEIGHT - 1].LandType;
+                    newOrientation = Orientation.DEFAULT;
+                    break;
+
+                default:
+                    newType = land[x, LAND_HEIGHT - 1].LandType;
+                    newOrientation = Orientation.DEFAULT;
+                    break;
+            }
+
+            land[x, LAND_HEIGHT - 1].LandType = newType;
+            land[x, LAND_HEIGHT - 1].Orientation = newOrientation;
+
+            switch (bottomTile.TileType)
+            {
+                case TileType.WATER:
+                    newType = (x == 0 && leftTile.TileType == TileType.WATER) || (x == LAND_WIDTH - 1 && rightTile.TileType == TileType.WATER) ?
+                        LandType.CLIFF_CORNER : LandType.CLIFF;
+                    newOrientation = (x == 0) ? Orientation.BOTTOM_LEFT : (x == LAND_WIDTH - 1) ? Orientation.BOTTOM_RIGHT : Orientation.BOTTOM;
+                    break;
+
+                case TileType.FOREST:
+                    newType = (random.Next(0, 100) < 35) ? LandType.TREE 
+                        : (random.Next(0, 100) < 70) ? LandType.PINE 
+                        : land[x, 0].LandType;
+                    newOrientation = Orientation.DEFAULT;
+                    break;
+
+                case TileType.MOUNTAIN:
+                    newType = (random.Next(0, 100) < 70) ? LandType.ROCK : land[x, 0].LandType;
+                    newOrientation = Orientation.DEFAULT;
+                    break;
+
+                default:
+                    newType = land[x, LAND_HEIGHT - 1].LandType;
+                    newOrientation = Orientation.DEFAULT;
+                    break;
+            }
+
+            land[x, 0].LandType = newType;
+            land[x, 0].Orientation = newOrientation;
+        }
     }
 
     private Border[] GenerateMountainLayers()
@@ -348,6 +421,7 @@ public class Land
 
     public enum LandType
     {
+        DEFAULT,
         TREE,
         PINE,
         ROCK,
