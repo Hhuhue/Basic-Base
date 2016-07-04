@@ -6,11 +6,8 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour
 {
-    public static bool isPanning;     // Is the camera being panned?
     public int mapHeight;
     public int mapWidth;
-    public float panSpeed = 4.0f;       // Speed of the camera when being panned
-    public float zoomSpeed = 4.0f;      // Speed of the camera going back and forth
 
     private Vector3 cameraPosition;
     private Vector3 mouseOrigin;    // Position of cursor when mouse dragging starts
@@ -19,34 +16,26 @@ public class CameraController : MonoBehaviour
     void Update()
     {
         float cameraSize = Camera.main.orthographicSize;
+        float panSpeed = cameraSize * 0.1f;
+
         cameraPosition = Camera.main.transform.position;
-        maxSize = (States.View == CameraView.LAND) ? 5 : 10;
+        maxSize = 10;
 
-        if(cameraSize > maxSize)
+        if (Input.anyKey && States.View == CameraView.MAP)
         {
-            cameraSize = maxSize;
-            Camera.main.orthographicSize = maxSize;
-        }
+            Vector3 move = Vector3.zero;
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            mouseOrigin = Input.mousePosition;
-            isPanning = true;
-        }
-        
-        if (!Input.GetMouseButton(1)) isPanning = false;
-        
-        if (isPanning)
-        {
-            Vector3 position = Camera.main.ScreenToViewportPoint(Input.mousePosition - mouseOrigin);
-
-            Vector3 move = new Vector3(position.x * panSpeed, position.y * panSpeed, 0);
+            if (Input.GetKey(KeyCode.W)) move.y = -panSpeed;
+            if (Input.GetKey(KeyCode.S)) move.y = panSpeed;
+            if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
+            if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
             if (!IsCameraInMapWidth(move)) move.x = 0;
 
             if (!IsCameraInMapHeight(move)) move.y = 0;
 
-            transform.Translate(move, Space.Self);
+            Camera.main.transform.position = cameraPosition + move;
+
         }
 
         if (Input.GetAxis("Mouse ScrollWheel") < 0) // zoom back
@@ -68,7 +57,7 @@ public class CameraController : MonoBehaviour
     {
         if (States.View == CameraView.LAND)
         {
-            position = new Vector3(position.x * 10, position.y * 10, position.z);
+            position = new Vector3(position.x, position.y, position.z);
         }
 
         Camera.main.transform.position = position;

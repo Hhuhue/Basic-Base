@@ -72,7 +72,7 @@ public class MapController : MonoBehaviour
     void SetCamera()
     {
         cameraController = Camera.main.transform.GetComponent<CameraController>();
-        cameraController.SetPosition(new Vector3(width / 2, height / 2, 0));
+        cameraController.SetPosition(new Vector3(width / 2 + 0.5f, height / 2 + 0.5f, 0));
         cameraController.mapWidth = width;
         cameraController.mapHeight = height;
     }
@@ -132,19 +132,10 @@ public class MapController : MonoBehaviour
     {
         if (Camera.main.transform.position.z > 0) return;
 
-        for (int x = (int)tile.Position.x - 2; x < (int)tile.Position.x + 3; x++)
-        {
-            for (int y = (int)tile.Position.y - 1; y < (int)tile.Position.y + 2; y++)
-            {
-                if (map.IsPositionValid(x, y))
-                {
-                    landController.DrawLand(map.GetTile(x, y));
-                }
-            }
-        }
+        landController.DrawLand((tile.Position + new Vector2(-2, -1)) * 10);
 
         cameraController.ChangeView();
-        cameraController.SetPosition(new Vector3(tile.Position.x + 0.5f, tile.Position.y + 0.5f, -6));
+        cameraController.SetPosition(new Vector3((float)landController.Width / 2 + 0.5f, (float)landController.Height / 2 + 0.5f, -6));
     }
 
     public void SelectTile(int x, int y)

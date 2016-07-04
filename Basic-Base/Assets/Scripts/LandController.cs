@@ -6,78 +6,73 @@ using Border = Land.Border;
 public class LandController : MonoBehaviour
 {
     public GameObject mapUI;
+    public int Height = 30;
+    public int Width = 50;
 
     private Map map;
     private GameObject[,] childs;
     private Border borders;
+
+
+    private Vector2 relativeBottomLeft;
 
     void Start()
     {
         MapController mapGenerator = mapUI.GetComponent<MapController>();
         map = mapGenerator.GetMap();
 
-        childs = new GameObject[mapGenerator.width, mapGenerator.height];
+        childs = new GameObject[Width, Height];
 
         int landCount = 0;
-        for (int x = 0; x < mapGenerator.width; x++)
+        for (int x = 0; x < Width; x++)
         {
-            for (int y = 0; y < mapGenerator.height; y++)
+            for (int y = 0; y < Height; y++)
             {
-                GameObject land = new GameObject("Land-" + ++landCount);
-                land.transform.parent = transform;
-                land.transform.position = new Vector3(x * 10 + 5, y * 10 + 5, -1);
-                land.SetActive(false);
-                
-                childs[x, y] = land;
+                GameObject landPiece = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
+                landPiece.transform.parent = transform;
+                landPiece.transform.position = new Vector3(x + 0.5f, y + 0.5f, -2);
+                landPiece.transform.localScale = new Vector3(1, 1, 1);
+
+                GameObject icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
+                icon.transform.parent = landPiece.transform;
+                icon.transform.position = landPiece.transform.position + Vector3.back;
+
+                childs[x, y] = landPiece;
             }
         }
     }
 
     void Update()
     {
-        if(States.View == CameraController.CameraView.LAND && CameraController.isPanning)
+        if (Input.anyKey && States.View == CameraController.CameraView.LAND)
         {
             float cameraSize = Camera.main.orthographicSize;
-            Vector3 cameraPosition = Camera.main.transform.position;
+            float panSpeed = cameraSize * 0.05f;
 
-            Border border = new Border()
-            {
-                Top = (int)(cameraPosition.y + cameraSize) / 10,
-                Bottom = (int)(cameraPosition.y - cameraSize - 5) / 10,
-                Right = (int)(cameraPosition.x + cameraSize * 2 + 5) / 10,
-                Left = (int)(cameraPosition.x - cameraSize * 2 - 5) / 10,
-            };
-            
-            if (borders != null && borders == border) return;
+            Vector2 move = Vector2.zero;
 
-            int yMove = borders.Top < border.Top ? 1 : (borders.Top > border.Top) ? -1 : 0;
-            int xMove = borders.Right < border.Right ? 1 : (borders.Right > border.Right) ? -1 : 0;
+            if (Input.GetKey(KeyCode.W)) move.y = 1;
+            if (Input.GetKey(KeyCode.S)) move.y = -1;
+            if (Input.GetKey(KeyCode.A)) move.x = -1;
+            if (Input.GetKey(KeyCode.D)) move.x = 1;
 
-            Vector2 move = new Vector2(xMove, yMove);
-            MoveLandView(move, border);        
-            
-            borders = border;
+            DrawLand(relativeBottomLeft + move);
+            Debug.Log(relativeBottomLeft);
         }
     }
 
-    public void DrawLand(Tile tile)
+    public void DrawLand(Vector2 origin)
     {
-        GameObject child = childs[(int)tile.Position.x, (int)tile.Position.y];
-        child.SetActive(true);
-        Land land = map.GetLand((int)tile.Position.x, (int)tile.Position.y);
+        relativeBottomLeft = origin;
 
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < Width; x++)
         {
-            for (int y = 0; y < 10; y++)
+            for (int y = 0; y < Height; y++)
             {
-                Vector2 position = tile.Position;
-                Tile landPiece = map.GetLand((int)position.x, (int)position.y).GetLandPiece(x, y);
+                Tile landPiece = map.GetLand((int)(relativeBottomLeft.x + x) / 10, (int)(relativeBottomLeft.y + y) / 10)
+                    .GetLandPiece(((int)relativeBottomLeft.x + x) % 10, ((int)relativeBottomLeft.y + y) % 10);
 
-                GameObject landPieceUI = Instantiate(Resources.Load<GameObject>("Prefabs/LandPiece"));
-                landPieceUI.transform.position = new Vector3(position.x * 10 + x + 0.5f, position.y * 10 + y + 0.5f, -2);
-                landPieceUI.transform.parent = child.transform;
-                landPieceUI.transform.localScale = new Vector3(1, 1, 1);
-
+                GameObject landPieceUI = childs[x, y];
                 SpriteRenderer renderer = landPieceUI.GetComponent<SpriteRenderer>();
                 LandType landType = landPiece.LandType;
 
@@ -87,58 +82,17 @@ public class LandController : MonoBehaviour
 
                 renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);
 
-                if (landType == LandType.GRASS || landType == LandType.WATER) continue;
+                path = (landType == LandType.GRASS || landType == LandType.WATER) ? "" : "Sprites/" + landType.ToString().ToLower();
 
-                GameObject icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
-                icon.transform.parent = landPieceUI.transform;
-                icon.transform.position = landPieceUI.transform.position + Vector3.back;
-                icon.GetComponent<IconController>().SetSprite("Sprites/" + landType.ToString().ToLower());
+                GameObject icon = landPieceUI.transform.GetChild(0).gameObject;
+                icon.GetComponent<IconController>().SetSprite(path);
                 icon.transform.localEulerAngles = TileController.OrientationToVector(landPiece.Orientation);
             }
         }
     }
 
-    private void MoveLandView(Vector2 move, Border border)
+    private void MoveLandView(Vector2 move)
     {
-        if(move.x > 0)
-        {
-            for (int i = 0; i < 3; i++) ActivateLand(border.Right, border.Bottom + i);
-            for (int i = 0; i < 3; i++) DesactivateLand(border.Left - 1, border.Bottom + i);
-        }
 
-        if (move.x < 0)
-        {
-            for (int i = 0; i < 3; i++) ActivateLand(border.Left, border.Bottom + i);
-            for (int i = 0; i < 3; i++) DesactivateLand(border.Right + 1, border.Bottom + i);
-        }
-
-        if (move.y > 0)
-        {
-            for (int i = 0; i < 4; i++) ActivateLand(border.Left + i, border.Top);
-            for (int i = 0; i < 4; i++) DesactivateLand(border.Left + i, border.Bottom - 1);
-        }
-
-        if (move.y < 0)
-        {
-            for (int i = 0; i < 4; i++) ActivateLand(border.Left + i, border.Bottom);
-            for (int i = 0; i < 4; i++) DesactivateLand(border.Left + i, border.Top + 1);
-        }
-    }
-
-    private void ActivateLand(int x, int y)
-    {
-        if (!map.IsPositionValid(x, y)) return;
-
-        if (childs[x, y].transform.childCount < 1)
-            DrawLand(map.GetTile(x, y));
-        else
-            childs[x, y].SetActive(true);
-    }    
-
-    private void DesactivateLand(int x, int y)
-    {
-        if (!map.IsPositionValid(x, y)) return;
-
-        childs[x, y].SetActive(false);
     }
 }
