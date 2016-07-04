@@ -47,14 +47,14 @@ public class LandController : MonoBehaviour
         if (Input.anyKey && States.View == CameraController.CameraView.LAND)
         {
             float cameraSize = Camera.main.orthographicSize;
-            float panSpeed = cameraSize * 0.05f;
+            float panSpeed = cameraSize * 0.1f;
 
             Vector2 move = Vector2.zero;
 
-            if (Input.GetKey(KeyCode.W)) move.y = 1;
-            if (Input.GetKey(KeyCode.S)) move.y = -1;
-            if (Input.GetKey(KeyCode.A)) move.x = -1;
-            if (Input.GetKey(KeyCode.D)) move.x = 1;
+            if (Input.GetKey(KeyCode.W)) move.y = panSpeed;
+            if (Input.GetKey(KeyCode.S)) move.y = -panSpeed;
+            if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
+            if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
             DrawLand(relativeBottomLeft + move);
             Debug.Log(relativeBottomLeft);

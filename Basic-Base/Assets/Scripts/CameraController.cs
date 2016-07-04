@@ -25,8 +25,8 @@ public class CameraController : MonoBehaviour
         {
             Vector3 move = Vector3.zero;
 
-            if (Input.GetKey(KeyCode.W)) move.y = -panSpeed;
-            if (Input.GetKey(KeyCode.S)) move.y = panSpeed;
+            if (Input.GetKey(KeyCode.W)) move.y = panSpeed;
+            if (Input.GetKey(KeyCode.S)) move.y = -panSpeed;
             if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
             if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
