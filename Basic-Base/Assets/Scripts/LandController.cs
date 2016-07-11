@@ -12,8 +12,6 @@ public class LandController : MonoBehaviour
     private Map map;
     private GameObject[,] childs;
     private Border borders;
-
-
     private Vector2 relativeBottomLeft;
 
     void Start()
@@ -22,8 +20,7 @@ public class LandController : MonoBehaviour
         map = mapGenerator.GetMap();
 
         childs = new GameObject[Width, Height];
-
-        int landCount = 0;
+        
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
@@ -56,21 +53,29 @@ public class LandController : MonoBehaviour
             if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
             if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
-            DrawLand(relativeBottomLeft + move);
-            Debug.Log(relativeBottomLeft);
+            float newX = relativeBottomLeft.x + move.x;
+            float newY = relativeBottomLeft.y + move.y;
+
+            if(newX >= 0 && newY >=0 && map.IsPositionValid((int)(newX + Width) / 10, (int)(newY + Height) / 10))
+            {
+                relativeBottomLeft += move;
+                DrawLand(relativeBottomLeft);
+            }            
         }
     }
 
     public void DrawLand(Vector2 origin)
     {
-        relativeBottomLeft = origin;
-
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
             {
-                Tile landPiece = map.GetLand((int)(relativeBottomLeft.x + x) / 10, (int)(relativeBottomLeft.y + y) / 10)
-                    .GetLandPiece(((int)relativeBottomLeft.x + x) % 10, ((int)relativeBottomLeft.y + y) % 10);
+                Vector2 landPosition = new Vector2((relativeBottomLeft.x + x) / 10, (relativeBottomLeft.y + y) / 10);
+                Vector2 landPiecePosition = new Vector2((relativeBottomLeft.x + x) % 10, (relativeBottomLeft.y + y) % 10);
+                Land land = map.GetLand((int)landPosition.x, (int)landPosition.y);
+                Tile landPiece = land.GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y);
+
+                if(landPiece == null) Debug.Log(landPiecePosition.ToString() + " " + landPosition.ToString());
 
                 GameObject landPieceUI = childs[x, y];
                 SpriteRenderer renderer = landPieceUI.GetComponent<SpriteRenderer>();
@@ -89,10 +94,5 @@ public class LandController : MonoBehaviour
                 icon.transform.localEulerAngles = TileController.OrientationToVector(landPiece.Orientation);
             }
         }
-    }
-
-    private void MoveLandView(Vector2 move)
-    {
-
     }
 }
