@@ -6,25 +6,23 @@ public class Map
 {
     private Tile[,] map;
     private Land[,] lands;
-    private Config config;
 
-    public Map(Config configuration)
+    public Map()
     {
-        config = configuration;
-        map = new Tile[config.Width, config.Height];
-        lands = new Land[config.Width, config.Height];
+        map = new Tile[Config.Width, Config.Height];
+        lands = new Land[Config.Width, Config.Height];
 
         RandomFillMap();
         SmoothMap();
-        GenerateResource(config.ForestRatio, TileType.FOREST);
-        GenerateResource(config.MountainRatio, TileType.MOUNTAIN);
-        GenerateResource(config.CoastRatio, TileType.COAST);
+        GenerateResource(Config.ForestRatio, TileType.FOREST);
+        GenerateResource(Config.MountainRatio, TileType.MOUNTAIN);
+        GenerateResource(Config.CoastRatio, TileType.COAST);
         GenerateLands();
     }
 
     public bool IsPositionValid(int x, int y)
     {
-        return y >= 0 && x >= 0 && y < config.Height && x < config.Width;
+        return y >= 0 && x >= 0 && y < Config.Height && x < Config.Width;
     }
 
     public Tile GetTile(int x, int y)
@@ -32,11 +30,6 @@ public class Map
         if (!IsPositionValid(x, y)) return null;
 
         return map[x, y];
-    }
-
-    public Config GetConfiguration()
-    {
-        return config;
     }
 
     public Land GetLand(int x, int y)
@@ -56,15 +49,15 @@ public class Map
 
     private void RandomFillMap()
     {
-        for (int x = 0; x < config.Width; x++)
+        for (int x = 0; x < Config.Width; x++)
         {
-            for (int y = 0; y < config.Height; y++)
+            for (int y = 0; y < Config.Height; y++)
             {
                 map[x, y] = new Tile()
                 {
                     Position = new Vector2(x, y),
                     Icons = new List<string>(),
-                    TileType = config.Seed.Next(0, 100) < config.FillRatio ? TileType.PLAIN : TileType.WATER,
+                    TileType = Config.Seed.Next(0, 100) < Config.FillRatio ? TileType.PLAIN : TileType.WATER,
                     Orientation = Orientation.DEFAULT
                 };
             }
@@ -73,11 +66,11 @@ public class Map
 
     private void SmoothMap()
     {
-        for (int i = 0; i < config.SmoothCount; i++)
+        for (int i = 0; i < Config.SmoothCount; i++)
         {
-            for (int x = 0; x < config.Width; x++)
+            for (int x = 0; x < Config.Width; x++)
             {
-                for (int y = 0; y < config.Height; y++)
+                for (int y = 0; y < Config.Height; y++)
                 {
                     int surroundingLandCount = GetSurroundingLandCount(x, y);
 
@@ -108,11 +101,11 @@ public class Map
 
     void GenerateResource(int ratio, TileType resource)
     {
-        System.Random random = config.Seed;
+        System.Random random = Config.Seed;
 
-        for (int x = 0; x < config.Width; x++)
+        for (int x = 0; x < Config.Width; x++)
         {
-            for (int y = 0; y < config.Height; y++)
+            for (int y = 0; y < Config.Height; y++)
             {
                 if (map[x, y].TileType != TileType.WATER)
                 {
@@ -129,13 +122,13 @@ public class Map
 
                             map[x, y].TileType = coastType;
                             map[x, y].Orientation = coastOrientation;
-                            map[x, y].Icons.Add(config.TileIconPath + coastType.ToString().ToLower());
+                            map[x, y].Icons.Add(Config.TileIconPath + coastType.ToString().ToLower());
                         }
                     }
                     else
                     {
                         map[x, y].TileType = number < ratio ? resource : map[x, y].TileType;
-                        map[x, y].Icons.Add(config.TileIconPath + map[x, y].TileType.ToString().ToLower());
+                        map[x, y].Icons.Add(Config.TileIconPath + map[x, y].TileType.ToString().ToLower());
                     }
                 }
             }
@@ -144,9 +137,9 @@ public class Map
 
     private void GenerateLands()
     {
-        for (int x = 0; x < config.Width; x++)
+        for (int x = 0; x < Config.Width; x++)
         {
-            for (int y = 0; y < config.Height; y++)
+            for (int y = 0; y < Config.Height; y++)
             {
                 lands[x, y] = new Land(this, map[x, y]);
             }
@@ -155,10 +148,10 @@ public class Map
 
     private Orientation GetCoastOrientation(int x, int y)
     {
-        bool waterOnTop = y + 1 < config.Height && map[x, y + 1].TileType == TileType.WATER;
+        bool waterOnTop = y + 1 < Config.Height && map[x, y + 1].TileType == TileType.WATER;
         bool waterOnBottom = y - 1 >= 0 && map[x, y - 1].TileType == TileType.WATER;
         bool waterOnLeft = x - 1 >= 0 && map[x - 1, y].TileType == TileType.WATER;
-        bool waterOnRight = x + 1 < config.Width && map[x + 1, y].TileType == TileType.WATER;
+        bool waterOnRight = x + 1 < Config.Width && map[x + 1, y].TileType == TileType.WATER;
 
         if (waterOnBottom && waterOnTop)
         {
@@ -190,10 +183,10 @@ public class Map
     private bool IsCoastEnd(int x, int y)
     {
         int trueConditionCount = 0;
-        trueConditionCount += (y + 1 < config.Height && map[x, y + 1].TileType == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (y + 1 < Config.Height && map[x, y + 1].TileType == TileType.WATER) ? 1 : 0;
         trueConditionCount += (y - 1 >= 0 && map[x, y - 1].TileType == TileType.WATER) ? 1 : 0;
         trueConditionCount += (x - 1 >= 0 && map[x - 1, y].TileType == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (x + 1 < config.Width && map[x + 1, y].TileType == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x + 1 < Config.Width && map[x + 1, y].TileType == TileType.WATER) ? 1 : 0;
 
         return trueConditionCount > 2;
     }

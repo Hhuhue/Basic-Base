@@ -53,20 +53,17 @@ public class MapController : MonoBehaviour
     {
         if (useRandomSeed) seed = System.DateTime.UtcNow.ToString();
 
-        Config config = new Config()
-        {
-            Height = height,
-            Width = width,
-            FillRatio = fillPercentage,
-            ForestRatio = forestPercentage,
-            MountainRatio = mountainPercentage,
-            CoastRatio = coastPercentage,
-            Seed = new System.Random(seed.GetHashCode()),
-            SmoothCount = smoothCount,
-            TileIconPath = "Sprites/",
-        };
+        Config.Height = height;
+        Config.Width = width;
+        Config.FillRatio = fillPercentage;
+        Config.ForestRatio = forestPercentage;
+        Config.MountainRatio = mountainPercentage;
+        Config.CoastRatio = coastPercentage;
+        Config.Seed = new System.Random(seed.GetHashCode());
+        Config.SmoothCount = smoothCount;
+        Config.TileIconPath = "Sprites/";
 
-        map = new Map(config);
+        map = new Map();
     }
 
     void SetCamera()
@@ -112,7 +109,7 @@ public class MapController : MonoBehaviour
                     TileController controller = tile.GetComponent<TileController>();
                     controller.map = gameObject;
                     controller.tile = map.GetTile(x, y);
-                    controller.SetSprite(map.GetConfiguration().TileIconPath + type.ToString().ToLower());
+                    controller.SetSprite(Config.TileIconPath + type.ToString().ToLower());
                     controller.SetPosition(x, y);
 
                     type = map.GetTile(x, y).TileType;

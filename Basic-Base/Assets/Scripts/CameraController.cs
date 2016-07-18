@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using System.Collections;
+using Border = Land.Border;
 
 public class CameraController : MonoBehaviour
 {
@@ -10,8 +11,16 @@ public class CameraController : MonoBehaviour
     public int mapWidth;
 
     private Vector3 cameraPosition;
-    private Vector3 mouseOrigin;    // Position of cursor when mouse dragging starts
+    private Border viewBorders;
     private int maxSize;
+    private float cameraSize;
+
+    void Start()
+    {
+        cameraSize = Camera.main.orthographicSize;
+
+        UpdateViewBorders();
+    }
 
     void Update()
     {
@@ -30,12 +39,17 @@ public class CameraController : MonoBehaviour
             if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
             if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
-            if (!IsCameraInMapWidth(move)) move.x = 0;
+            if (!IsCameraInMapWidth(move)) move.x = move.x > 0 
+                    ? move.x - (viewBorders.Right + move.x - Config.Width) 
+                    : move.x - (viewBorders.Left + move.x);
 
-            if (!IsCameraInMapHeight(move)) move.y = 0;
+            if (!IsCameraInMapHeight(move)) move.y = move.y > 0
+                    ? move.y - (viewBorders.Top + move.y - Config.Height)
+                    : move.y - (viewBorders.Bottom + move.y);
 
             Camera.main.transform.position = cameraPosition + move;
-
+            cameraPosition += move;
+            UpdateViewBorders();
         }
 
         if (Input.GetAxis("Mouse ScrollWheel") < 0) // zoom back
@@ -43,13 +57,18 @@ public class CameraController : MonoBehaviour
             if (Camera.main.orthographicSize < maxSize)
             {
                 Camera.main.orthographicSize++;
+                UpdateViewBorders();
                 RelocateCamera();
             }
         }
 
         if (Input.GetAxis("Mouse ScrollWheel") > 0) // zoom in
         {
-            if (Camera.main.orthographicSize > 2) Camera.main.orthographicSize--;
+            if (Camera.main.orthographicSize > 2)
+            {
+                Camera.main.orthographicSize--;
+                UpdateViewBorders();
+            }
         }
     }
 
@@ -104,6 +123,19 @@ public class CameraController : MonoBehaviour
 
         return cameraPosition.y - cameraSize + move.y >= 0 &&
                cameraPosition.y + cameraSize + move.y < currentHeight;
+    }
+
+    private void UpdateViewBorders()
+    {
+        cameraSize = Camera.main.orthographicSize;
+
+        viewBorders = new Border
+        {
+            Bottom = cameraPosition.y - cameraSize,
+            Top = cameraPosition.y + cameraSize,
+            Left = cameraPosition.x - cameraSize * 2,
+            Right = cameraPosition.x + cameraSize * 2
+        };
     }
 
     public enum CameraView

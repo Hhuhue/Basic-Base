@@ -62,7 +62,7 @@ public class Land
 
     private void GenerateForest()
     {
-        System.Random random = map.GetConfiguration().Seed;
+        System.Random random = Config.Seed;
 
         for (int x = 0; x < LAND_WIDTH; x++)
         {
@@ -81,7 +81,7 @@ public class Land
 
     private void GeneratePlain()
     {
-        System.Random random = map.GetConfiguration().Seed;
+        System.Random random = Config.Seed;
 
         for (int x = 0; x < LAND_WIDTH; x++)
         {
@@ -110,7 +110,7 @@ public class Land
 
     private void GenerateCoast()
     {
-        System.Random random = map.GetConfiguration().Seed;
+        System.Random random = Config.Seed;
 
         int waterThickness = random.Next(0, 2);
         int sandThickness = random.Next(1, 3);
@@ -134,7 +134,7 @@ public class Land
 
     private void GenerateMountain()
     {
-        System.Random random = map.GetConfiguration().Seed;
+        System.Random random = Config.Seed;
 
         Border[] mountainZones = GenerateMountainLayers();
 
@@ -153,9 +153,9 @@ public class Land
 
         foreach (Border layer in mountainZones)
         {
-            for (int x = layer.Left; x <= layer.Right; x++)
+            for (int x = (int)layer.Left; x <= layer.Right; x++)
             {
-                for (int y = layer.Bottom; y <= layer.Top; y++)
+                for (int y = (int)layer.Bottom; y <= layer.Top; y++)
                 {
                     Orientation orientation = GetMountainFaceOrientation(x, y, layer);
                     LandType type = map.IsOrientationCorner(orientation) ? LandType.MOUNTAIN_CORNER : land[x, y].LandType;
@@ -188,7 +188,7 @@ public class Land
         Tile rightTile = map.GetTile(xPosition + 1, yPosition) ?? new Tile();
         Tile leftTile = map.GetTile(xPosition - 1, yPosition) ?? new Tile();
 
-        System.Random random = map.GetConfiguration().Seed;
+        System.Random random = Config.Seed;
 
         for (int x = 0; x < LAND_WIDTH; x++)
         {
@@ -355,7 +355,7 @@ public class Land
 
     private Border[] GenerateMountainLayers()
     {
-        System.Random random = map.GetConfiguration().Seed;
+        System.Random random = Config.Seed;
         int layerCount = random.Next(1, 4);
         Border[] layers = new Border[layerCount];
         Border lastBorder = new Border(LAND_HEIGHT - 1, -1, -1, LAND_WIDTH - 1);
@@ -477,12 +477,12 @@ public class Land
 
     public struct Border
     {
-        public int Top { get; set; }
-        public int Bottom { get; set; }
-        public int Left { get; set; }
-        public int Right { get; set; }
+        public float Top { get; set; }
+        public float Bottom { get; set; }
+        public float Left { get; set; }
+        public float Right { get; set; }
 
-        public Border(int top, int bottom, int left, int right) : this()
+        public Border(float top, float bottom, float left, float right) : this()
         {
             Top = top;
             Bottom = bottom;
