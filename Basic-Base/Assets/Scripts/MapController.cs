@@ -45,7 +45,7 @@ public class MapController : MonoBehaviour
         GameObject lands = new GameObject("Lands");
         lands.transform.position = Vector3.zero;
         LandController controller = lands.AddComponent<LandController>();
-        controller.mapUI = gameObject;
+        controller.MapUI = gameObject;
         landController = controller;
     }
 
@@ -53,8 +53,10 @@ public class MapController : MonoBehaviour
     {
         if (useRandomSeed) seed = System.DateTime.UtcNow.ToString();
 
-        Config.Height = height;
-        Config.Width = width;
+        Config.MapHeight = height;
+        Config.MapWidth = width;
+        Config.LandHeight = height / 2;
+        Config.LandWidth = width / 2;
         Config.FillRatio = fillPercentage;
         Config.ForestRatio = forestPercentage;
         Config.MountainRatio = mountainPercentage;
@@ -70,8 +72,7 @@ public class MapController : MonoBehaviour
     {
         cameraController = Camera.main.transform.GetComponent<CameraController>();
         cameraController.SetPosition(new Vector3(width / 2 + 0.5f, height / 2 + 0.5f, 0));
-        cameraController.mapWidth = width;
-        cameraController.mapHeight = height;
+        cameraController.Land = landController;
     }
 
     void SetSelector()
@@ -132,7 +133,7 @@ public class MapController : MonoBehaviour
         landController.DrawLand((tile.Position + new Vector2(-2, -1)) * 10);
 
         cameraController.ChangeView();
-        cameraController.SetPosition(new Vector3((float)landController.Width / 2 + 0.5f, (float)landController.Height / 2 + 0.5f, -6));
+        cameraController.SetPosition(new Vector3((float)Config.LandWidth / 2 + 0.5f, (float)Config.LandHeight / 2 + 0.5f, -6));
     }
 
     public void SelectTile(int x, int y)

@@ -7,9 +7,13 @@ public class Config
 {
     public static Random Seed { get; set; }
 
-    public static int Width { get; set; }
+    public static int MapWidth { get; set; }
 
-    public static int Height { get; set; }
+    public static int MapHeight { get; set; }
+
+    public static int LandWidth { get; set; }
+
+    public static int LandHeight { get; set; }
 
     public static int SmoothCount { get; set; }
 
