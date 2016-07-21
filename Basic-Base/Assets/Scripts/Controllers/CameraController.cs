@@ -1,13 +1,10 @@
-// Credit to damien_oconnell from http://forum.unity3d.com/threads/39513-Click-drag-camera-movement
-// for using the mouse displacement for calculating the amount of camera movement and panning code.
-
 using UnityEngine;
 using System.Collections;
 using Border = Land.Border;
 
 public class CameraController : MonoBehaviour
 {
-    public LandController Land;
+    public ViewController Land;
 
     private Vector3 cameraPosition;
     private Border viewBorders;
@@ -28,15 +25,7 @@ public class CameraController : MonoBehaviour
 
         cameraPosition = Camera.main.transform.position;
 
-        if (Input.anyKey)
-        {
-            switch (States.View)
-            {
-                case CameraView.MAP: MoveInMap(); break;
-
-                case CameraView.LAND: MoveInLand(); break;
-            }
-        }
+        MoveInLand();
 
         ManageZoom();
     }
@@ -51,12 +40,12 @@ public class CameraController : MonoBehaviour
         if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
         if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
-        if (!IsCameraInMapWidth(move)) move.x = move.x > 0
-                ? move.x - (viewBorders.Right + move.x - Config.LandWidth)
+        if (!IsCameraInViewWidth(move)) move.x = move.x > 0
+                ? move.x - (viewBorders.Right + move.x - Config.ViewWidth)
                 : move.x - (viewBorders.Left + move.x);
 
-        if (!IsCameraInMapHeight(move)) move.y = move.y > 0
-                ? move.y - (viewBorders.Top + move.y - Config.LandHeight)
+        if (!IsCameraInViewHeight(move)) move.y = move.y > 0
+                ? move.y - (viewBorders.Top + move.y - Config.ViewHeight)
                 : move.y - (viewBorders.Bottom + move.y);
 
         Camera.main.transform.position = cameraPosition + move;
@@ -74,20 +63,20 @@ public class CameraController : MonoBehaviour
         if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
         if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
-        if (!IsCameraInMapWidth(move))
+        if (!IsCameraInViewWidth(move))
         {
             move.x = move.x > 0
                 ? -viewBorders.Left
-                : Config.LandWidth - viewBorders.Right;
+                : Config.ViewWidth - viewBorders.Right;
 
             Land.OnBorderReached(move.x > 0 ? Map.Orientation.RIGHT : Map.Orientation.LEFT);
         }
 
-        if (!IsCameraInMapHeight(move))
+        if (!IsCameraInViewHeight(move))
         {
             move.y = move.y > 0
                 ? -viewBorders.Bottom
-                : Config.LandHeight - viewBorders.Top;
+                : Config.ViewHeight - viewBorders.Top;
 
             Land.OnBorderReached(move.y > 0 ? Map.Orientation.TOP : Map.Orientation.BOTTOM);
         }
@@ -152,21 +141,21 @@ public class CameraController : MonoBehaviour
             SetPosition(Camera.main.transform.position = new Vector3(cameraPosition.x, Config.MapHeight - cameraSize, cameraPosition.z));
     }
 
-    private bool IsCameraInMapWidth(Vector3 move)
+    private bool IsCameraInViewWidth(Vector3 move)
     {
         float cameraSize = Camera.main.orthographicSize * 2;
 
-        int currentWidth = (States.View == CameraView.LAND) ? Config.LandWidth : Config.MapWidth;
+        int currentWidth = Config.ViewWidth;
 
         return cameraPosition.x - cameraSize + move.x >= 0 &&
                cameraPosition.x + cameraSize + move.x < currentWidth;
     }
 
-    private bool IsCameraInMapHeight(Vector3 move)
+    private bool IsCameraInViewHeight(Vector3 move)
     {
         float cameraSize = Camera.main.orthographicSize;
 
-        int currentHeight = (States.View == CameraView.LAND) ? Config.LandHeight : Config.MapHeight;
+        int currentHeight = Config.ViewHeight;
 
         return cameraPosition.y - cameraSize + move.y >= 0 &&
                cameraPosition.y + cameraSize + move.y < currentHeight;

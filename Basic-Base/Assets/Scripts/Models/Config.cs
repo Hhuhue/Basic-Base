@@ -11,9 +11,9 @@ public class Config
 
     public static int MapHeight { get; set; }
 
-    public static int LandWidth { get; set; }
+    public static int ViewWidth { get; set; }
 
-    public static int LandHeight { get; set; }
+    public static int ViewHeight { get; set; }
 
     public static int SmoothCount { get; set; }
 

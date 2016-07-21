@@ -4,42 +4,36 @@ using Orientation = Map.Orientation;
 
 public class TileController : MonoBehaviour
 {
-    public Tile tile;
-    public GameObject map;
+    public Tile Tile;
+    public GameObject Map;
 
-    private int xPosition;
-    private int yPosition;
-    private GameObject icon;
-
-    void Start()
-    {
-
-    }
+    private int _xPosition;
+    private int _yPosition;
+    private GameObject _icon;
 
     void OnMouseDown()
     {
-        if(tile.TileType != Map.TileType.DEFAULT)
-            map.GetComponent<MapController>().LoadTile(tile);
+        if(Tile.TileType != global::Map.TileType.DEFAULT)
+            Map.GetComponent<ViewController>().LoadTile(Tile);
     }
     
     void OnMouseEnter()
     {
-        map.GetComponent<MapController>().SelectTile(xPosition, yPosition);
+        Map.GetComponent<ViewController>().SelectTile(_xPosition, _yPosition);
     }
 
     public void SetPosition(int x, int y)
     {
-        xPosition = x;
-        yPosition = y;
+        _xPosition = x;
+        _yPosition = y;
     }
 
     public void SetLandType(Tile tile)
     {
-        icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
-        icon.transform.parent = transform;
-        icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
-        icon.GetComponent<IconController>().SetSprite("Sprites/" + tile.TileType.ToString().ToLower());
-        icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
+        _icon = transform.GetChild(0).gameObject;
+        _icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
+        _icon.GetComponent<IconController>().SetSprite(Config.TileIconPath + tile.TileType.ToString().ToLower());
+        _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
     }
 
     public void SetSprite(string sprite)
