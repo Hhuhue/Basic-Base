@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Linq;
 using LandType = Land.LandType;
+using Orientation = Map.Orientation;
 using Border = Land.Border;
 
 public class LandController : MonoBehaviour
@@ -37,32 +38,7 @@ public class LandController : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        //if (Input.anyKey && States.View == CameraController.CameraView.LAND)
-        //{
-        //    float cameraSize = Camera.main.orthographicSize;
-        //    float panSpeed = cameraSize * 0.1f;
-
-        //    Vector2 move = Vector2.zero;
-
-        //    if (Input.GetKey(KeyCode.W)) move.y = panSpeed;
-        //    if (Input.GetKey(KeyCode.S)) move.y = -panSpeed;
-        //    if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
-        //    if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
-             
-        //    float newX = relativeBottomLeft.x + move.x;
-        //    float newY = relativeBottomLeft.y + move.y;
-
-        //    if (newX >= 0 && newY >= 0 && map.IsPositionValid((int)(newX + Config.LandWidth) / 10, (int)(newY + Config.LandHeight) / 10))
-        //    {
-        //        relativeBottomLeft += move;
-        //        DrawLand(relativeBottomLeft);
-        //    }            
-        //}
-    }
-
-    public void DrawLand(Vector2 origin)
+    public void DrawLand()
     {
         for (int x = 0; x < Config.LandWidth; x++)
         {
@@ -73,7 +49,7 @@ public class LandController : MonoBehaviour
                 Land land = map.GetLand((int)landPosition.x, (int)landPosition.y);
                 Tile landPiece = land.GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y);
 
-                if(landPiece == null) Debug.Log(landPiecePosition.ToString() + " " + landPosition.ToString());
+                if (landPiece == null) Debug.Log(landPiecePosition + " " + landPosition);
 
                 GameObject landPieceUI = childs[x, y];
                 SpriteRenderer renderer = landPieceUI.GetComponent<SpriteRenderer>();
@@ -92,5 +68,39 @@ public class LandController : MonoBehaviour
                 icon.transform.localEulerAngles = TileController.OrientationToVector(landPiece.Orientation);
             }
         }
+    }
+
+    public void OnBorderReached(Orientation side)
+    {
+        Vector2 move = Vector2.zero;
+
+        switch (side)
+        {
+            case Orientation.TOP:
+                move.y = -(Config.LandHeight - Camera.main.orthographicSize * 2);
+                break;
+
+            case Orientation.BOTTOM:
+                move.y = Config.LandHeight - Camera.main.orthographicSize * 2;
+                break;
+
+            case Orientation.LEFT:
+                move.x = Config.LandWidth - Camera.main.orthographicSize * 4;
+                break;
+                
+            case Orientation.RIGHT:
+                move.x = -(Config.LandWidth - Camera.main.orthographicSize * 4);
+                break;
+        }
+
+        float newX = RelativeBottomLeft.x + move.x;
+        float newY = RelativeBottomLeft.y + move.y;
+
+        if (newX >= 0 && newY >= 0 && map.IsPositionValid((int)(newX + Config.LandWidth) / 10, (int)(newY + Config.LandHeight) / 10))
+        {
+            RelativeBottomLeft += move;
+            DrawLand();
+        }
+
     }
 }

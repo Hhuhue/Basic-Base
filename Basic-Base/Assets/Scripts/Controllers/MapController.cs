@@ -34,10 +34,10 @@ public class MapController : MonoBehaviour
         childs = new GameObject[width, height];
 
         SetSelector();
-        SetCamera();
         LoadMap();
         DrawMap();
         SetLandGenerator();
+        SetCamera();
     }
 
     void SetLandGenerator()
@@ -130,9 +130,11 @@ public class MapController : MonoBehaviour
     {
         if (Camera.main.transform.position.z > 0) return;
 
-        landController.DrawLand((tile.Position + new Vector2(-2, -1)) * 10);
+        landController.RelativeBottomLeft = (tile.Position + new Vector2(-2, -1)) * 10;
+        landController.DrawLand();
 
         cameraController.ChangeView();
+        Camera.main.orthographicSize = 5;
         cameraController.SetPosition(new Vector3((float)Config.LandWidth / 2 + 0.5f, (float)Config.LandHeight / 2 + 0.5f, -6));
     }
 

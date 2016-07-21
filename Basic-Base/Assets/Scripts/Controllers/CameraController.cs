@@ -80,7 +80,7 @@ public class CameraController : MonoBehaviour
                 ? -viewBorders.Left
                 : Config.LandWidth - viewBorders.Right;
 
-            Land.DrawLand(Land.RelativeBottomLeft + new Vector2(move.x, 0));
+            Land.OnBorderReached(move.x > 0 ? Map.Orientation.RIGHT : Map.Orientation.LEFT);
         }
 
         if (!IsCameraInMapHeight(move))
@@ -89,7 +89,7 @@ public class CameraController : MonoBehaviour
                 ? -viewBorders.Bottom
                 : Config.LandHeight - viewBorders.Top;
 
-            Land.DrawLand(Land.RelativeBottomLeft + new Vector2(0, move.y));
+            Land.OnBorderReached(move.y > 0 ? Map.Orientation.TOP : Map.Orientation.BOTTOM);
         }
 
         Camera.main.transform.position = cameraPosition + move;
