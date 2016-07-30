@@ -25,6 +25,8 @@ public class Config
 
     public static int CoastRatio { get; set; }
 
-    public static string TileIconPath { get; set; }
+    public static string SpritesPath { get; set; }
+
+    public static View.ViewMode ViewMode { get; set; }
 }
 

@@ -122,13 +122,13 @@ public class Map
 
                             map[x, y].TileType = coastType;
                             map[x, y].Orientation = coastOrientation;
-                            map[x, y].Icons.Add(Config.TileIconPath + coastType.ToString().ToLower());
+                            map[x, y].Icons.Add(Config.SpritesPath + coastType.ToString().ToLower());
                         }
                     }
                     else
                     {
                         map[x, y].TileType = number < ratio ? resource : map[x, y].TileType;
-                        map[x, y].Icons.Add(Config.TileIconPath + map[x, y].TileType.ToString().ToLower());
+                        map[x, y].Icons.Add(Config.SpritesPath + map[x, y].TileType.ToString().ToLower());
                     }
                 }
             }

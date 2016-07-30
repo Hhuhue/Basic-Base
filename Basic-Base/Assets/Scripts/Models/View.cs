@@ -68,16 +68,22 @@ public class View
         return _viewField;
     }
 
+    public void SetOrigin(Vector2 origin)
+    {
+        _origin = origin;
+        UpdateView();
+    }
+
     private void UpdateView()
     {
         for (int x = 0; x < Config.ViewWidth; x++)
         {
-            for (int y = 0; x < Config.ViewHeight; y++)
+            for (int y = 0; y < Config.ViewHeight; y++)
             {
-                Vector2 tilePosition = new Vector2((_origin.x + x) / 10, (_origin.y + y) / 10);
-                Vector2 landPiecePosition = new Vector2((_origin.x + x) % 10, (_origin.y + y) % 10);
+                Vector2 tilePosition = new Vector2(_origin.x + x, _origin.y + y);
+                Vector2 landPiecePosition = new Vector2((_origin.x + x) * 10 % 10, (_origin.y + y) * 10 % 10);
 
-                Tile tile = States.View == ViewMode.LAND
+                Tile tile = Config.ViewMode == ViewMode.LAND
                     ? _map.GetLand((int)tilePosition.x, (int)tilePosition.y)
                         .GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y)
                     : _map.GetTile((int)tilePosition.x, (int)tilePosition.y);

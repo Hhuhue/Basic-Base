@@ -2,47 +2,60 @@
 using System.Collections;
 using Orientation = Map.Orientation;
 using TileType = Map.TileType;
+using LandType = Land.LandType;
 
 public class TileController : MonoBehaviour
 {
-    public Tile Tile;
-    public GameObject Map;
-
-    private int _xPosition;
-    private int _yPosition;
+    private Tile _tile;
     private GameObject _icon;
+    private ViewController _controller;
+
+    void Start()
+    {
+        _controller = transform.parent.gameObject.GetComponent<ViewController>();
+    }
 
     void OnMouseDown()
     {
-        if(Tile.TileType != global::Map.TileType.DEFAULT)
-            Map.GetComponent<ViewController>().LoadTile(Tile);
+        if (_tile.TileType != TileType.DEFAULT) _controller.LoadTile(_tile);
     }
     
     void OnMouseEnter()
     {
-        Map.GetComponent<ViewController>().SelectTile(_xPosition, _yPosition);
+        if(_controller == null) return;
+
+        _controller.SelectTile((int)_tile.Position.x, (int)_tile.Position.y);
     }
 
-    public void SetPosition(int x, int y)
+    public void SetTile(Tile tile)
     {
-        _xPosition = x;
-        _yPosition = y;
+        _tile = tile;
+
+        string sprite = tile.TileType == TileType.WATER
+            ? TileType.WATER.ToString().ToLower()
+            : TileType.PLAIN.ToString().ToLower();
+
+        GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + sprite);
+
+        SetIcon(tile);
     }
 
     public void SetIcon(Tile tile)
     {
-        string iconPath = (tile.TileType == TileType.PLAIN || Tile.TileType == TileType.WATER) ? "" 
-            : Config.TileIconPath + tile.TileType.ToString().ToLower();
+        _tile = tile;
+
+        bool isEmptyLandOrWater = (Config.ViewMode == View.ViewMode.MAP) 
+            ? tile.TileType == TileType.PLAIN || tile.TileType == TileType.WATER
+            : tile.LandType == LandType.GRASS || tile.LandType == LandType.WATER;
+
+        string iconPath = isEmptyLandOrWater ? "" : (Config.ViewMode == View.ViewMode.MAP) 
+            ? Config.SpritesPath + tile.TileType.ToString().ToLower() 
+            : Config.SpritesPath + tile.LandType.ToString().ToLower();
 
         _icon = transform.GetChild(0).gameObject;
         _icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
         _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
         _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
-    }
-
-    public void SetSprite(string sprite)
-    {
-        GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(sprite);
     }
 
     public static Vector3 OrientationToVector(Orientation orientation)

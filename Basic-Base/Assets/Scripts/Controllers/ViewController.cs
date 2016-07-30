@@ -8,132 +8,60 @@ using Border = Land.Border;
 
 public class ViewController : MonoBehaviour
 {
-    public GameObject MapUi;
-    public Vector2 RelativeBottomLeft;
-    public SpriteRenderer Selector;
-    public CameraController CameraController;
-    public View ViewField;
-    
-    private GameObject[,] _childs;
-    private GameObject _selectedChild;
+    public View ViewField { get; set; }
 
-    public void Initialize()
+    private GameObject[,] _children;
+    private Map _map;
+    private SpriteRenderer _selectorRenderer;
+
+    void Start()
     {
-        _childs = new GameObject[Config.ViewWidth, Config.ViewHeight];
+        SetSelector();
+
+        _children = new GameObject[Config.ViewWidth, Config.ViewHeight];
+        _map = GetComponent<MapController>().GetMap();
 
         for (int x = 0; x < Config.ViewWidth; x++)
         {
             for (int y = 0; y < Config.ViewHeight; y++)
             {
-                GameObject landPiece = Instantiate(Resources.Load<GameObject>("Prefabs/Tile"));
-                landPiece.transform.parent = transform;
-                landPiece.transform.position = new Vector3(x + 0.5f, y + 0.5f, 1);
-                landPiece.transform.localScale = new Vector3(1, 1, 1);
+                Tile tile = _map.GetTile(x, y);
 
-                GameObject icon = Instantiate(Resources.Load<GameObject>("Prefabs/TileIcon"));
-                icon.transform.parent = landPiece.transform;
-                icon.transform.position = landPiece.transform.position + Vector3.back;
+                GameObject tileObject = Instantiate(Resources.Load<GameObject>("Prefabs/Tile"));
+                tileObject.transform.parent = transform;
+                tileObject.transform.position = new Vector3(x + 0.5f, y + 0.5f, 3);
+                tileObject.transform.localScale = Vector3.one;
 
-                TileController controller = landPiece.GetComponent<TileController>();
-                controller.Map = MapUi;
-                controller.SetPosition(x, y);
+                GameObject icon = tileObject.transform.GetChild(0).gameObject;
+                icon.transform.parent = tileObject.transform;
 
-                _childs[x, y] = landPiece;
+                tileObject.GetComponent<TileController>().SetTile(tile);
+
+                _children[x, y] = tileObject;
             }
         }
     }
 
-    public void DrawLand()
+    void SetSelector()
     {
-        Tile[,] view = ViewField.GetView();
-
-        for (int x = 0; x < Config.ViewWidth; x++)
-        {
-            for (int y = 0; y < Config.ViewHeight; y++)
-            {
-                Tile tile = view[x, y];
-
-                GameObject landPieceUi = _childs[x, y];
-                SpriteRenderer renderer = landPieceUi.GetComponent<SpriteRenderer>();
-                landPieceUi.GetComponent<TileController>().enabled = false;
-
-                LandType landType = tile.LandType;
-
-                string path = landType != LandType.WATER
-                    ? LandType.GRASS.ToString().ToLower()
-                    : LandType.WATER.ToString().ToLower();
-
-                renderer.sprite = Resources.Load<Sprite>("Sprites/" + path);
-
-                path = (landType == LandType.GRASS || landType == LandType.WATER) ? "" : "Sprites/" + landType.ToString().ToLower();
-
-                GameObject icon = landPieceUi.transform.GetChild(0).gameObject;
-                icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(path);
-                icon.transform.localEulerAngles = TileController.OrientationToVector(tile.Orientation);
-            }
-        }
-    }
-
-    public void DrawMap()
-    {
-        Tile[,] view = ViewField.GetView();
-
-        for (int x = 0; x < Config.ViewWidth; x++)
-        {
-            for (int y = 0; y < Config.ViewHeight; y++)
-            {
-                Tile tile = view[x, y];
-
-                GameObject tileUi = _childs[x, y];
-
-                TileType type = tile.TileType;
-                type = (type != TileType.WATER) ? TileType.PLAIN : TileType.WATER;
-
-                TileController controller = tileUi.GetComponent<TileController>();
-                controller.enabled = true;
-                controller.Map = gameObject;
-                controller.Tile = tile;
-                controller.SetSprite(Config.TileIconPath + type.ToString().ToLower());
-                controller.SetPosition(x, y);
-                controller.SetIcon(tile);
-            }
-        }
-    }
-
-    public void OnBorderReached(Orientation side)
-    {
-        ViewField.MoveView(side, Camera.main.orthographicSize);
-
-        if (States.View == View.ViewMode.LAND)
-            DrawLand();
-        else
-            DrawMap();
+        GameObject selector = new GameObject("selector");
+        selector.transform.parent = transform;
+        selector.transform.position = new Vector3(0, 0, 1);
+        _selectorRenderer = selector.AddComponent<SpriteRenderer>();
+        _selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
+        _selectorRenderer.enabled = false;
     }
 
     public void LoadTile(Tile tile)
     {
-        if (Camera.main.transform.position.z > 0) return;
-
-        RelativeBottomLeft = (tile.Position + new Vector2(-2, -1)) * 10;
-        DrawLand();
-
-        CameraController.ChangeView();
-        Camera.main.orthographicSize = 5;
-        CameraController.SetPosition(new Vector3((float)Config.ViewWidth / 2 + 0.5f, (float)Config.ViewHeight / 2 + 0.5f, -6));
+        throw new System.NotImplementedException();
     }
 
-    public void SelectTile(int x, int y)
+    public void SelectTile(int xPosition, int yPosition)
     {
-        if (_selectedChild == _childs[x, y])
-        {
-            _selectedChild = null;
-            Selector.enabled = false;
-        }
-        else
-        {
-            _selectedChild = _childs[x, y];
-            Selector.enabled = true;
-            Selector.transform.position = new Vector3(x + 0.5f, y + 0.5f, -2);
-        }
+        Vector3 position = new Vector3(xPosition + 0.5f, yPosition + 0.5f, 1);
+
+        _selectorRenderer.enabled = true;
+        _selectorRenderer.transform.position = position;
     }
 }

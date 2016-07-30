@@ -20,8 +20,7 @@ public class MapController : MonoBehaviour
 
     [Range(0, 100)]
     public int CoastPercentage = 20;
-
-    private SpriteRenderer _selectorRenderer;
+    
     private ViewController _viewController;
     private CameraController _cameraController;
 
@@ -29,7 +28,6 @@ public class MapController : MonoBehaviour
 
     void Start()
     {
-        SetSelector();
         LoadMap();
         SetCamera();
         SetViewManager();
@@ -39,15 +37,8 @@ public class MapController : MonoBehaviour
     {
         ViewController controller = gameObject.AddComponent<ViewController>();
         controller.ViewField = new View(_map);
-        controller.MapUi = gameObject;
-        controller.RelativeBottomLeft = Vector2.zero;
-        controller.CameraController = _cameraController;
-        controller.Selector = _selectorRenderer;
-        controller.Initialize();
-        controller.DrawMap();
 
         _viewController = controller;
-        _cameraController.Land = _viewController;
     }
 
     private void LoadMap()
@@ -64,7 +55,7 @@ public class MapController : MonoBehaviour
         Config.CoastRatio = CoastPercentage;
         Config.Seed = new System.Random(Seed.GetHashCode());
         Config.SmoothCount = SmoothCount;
-        Config.TileIconPath = "Sprites/";
+        Config.SpritesPath = "Sprites/";
 
         _map = new Map();
     }
@@ -74,17 +65,7 @@ public class MapController : MonoBehaviour
         Vector3 cameraPosition = new Vector3(Config.ViewWidth / 2 + 0.5f, Config.ViewHeight / 2 + 0.5f, -5);
 
         _cameraController = Camera.main.transform.GetComponent<CameraController>();
-        _cameraController.SetPosition(cameraPosition);
-    }
-
-    void SetSelector()
-    {
-        GameObject selector = new GameObject("selector");
-        selector.transform.parent = transform;
-        selector.transform.position = new Vector3(0, 0, 1);
-        _selectorRenderer = selector.AddComponent<SpriteRenderer>();
-        _selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
-        _selectorRenderer.enabled = false;
+        Camera.main.transform.position = cameraPosition;
     }
 
     public Map GetMap()
