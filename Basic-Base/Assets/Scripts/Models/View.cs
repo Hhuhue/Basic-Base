@@ -20,49 +20,6 @@ public class View
         UpdateView();
     }
 
-    public void MoveView(Orientation direction, float zoomSize)
-    {
-        Vector2 move = Vector2.zero;
-
-        float yTranslation = Config.ViewHeight - zoomSize * 2;
-        float xTranslation = yTranslation * 2;
-
-        switch (direction)
-        {
-            case Orientation.TOP:
-                move.y = -yTranslation;
-                break;
-
-            case Orientation.BOTTOM:
-                move.y = yTranslation;
-                break;
-
-            case Orientation.LEFT:
-                move.x = xTranslation;
-                break;
-
-            case Orientation.RIGHT:
-                move.x = -xTranslation;
-                break;
-        }
-
-        if (move.x + _origin.x + Config.ViewWidth >= Config.MapWidth)
-            move.x = Config.MapWidth - _origin.x - Config.ViewWidth;
-
-        if (move.y + _origin.y + Config.MapHeight >= Config.MapHeight)
-            move.y = Config.MapHeight - _origin.y - Config.ViewHeight;
-
-        if (move.x + _origin.x <= 0)
-            move.x = -_origin.x;
-
-        if (move.y + _origin.y <= 0)
-            move.y = -_origin.y;
-
-        _origin += move;
-
-        UpdateView();
-    }
-
     public Tile[,] GetView()
     {
         return _viewField;
