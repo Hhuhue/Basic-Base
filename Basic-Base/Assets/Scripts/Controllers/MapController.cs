@@ -3,78 +3,78 @@ using TileType = Map.TileType;
 
 public class MapController : MonoBehaviour
 {
-    public int width;
-    public int height;
-    public int smoothCount;
-    public string seed;
-    public bool useRandomSeed;
+    public int Width;
+    public int Height;
+    public int SmoothCount;
+    public string Seed;
+    public bool UseRandomSeed;
 
     [Range(0, 100)]
-    public int fillPercentage = 50;
+    public int FillPercentage = 50;
 
     [Range(0, 100)]
-    public int forestPercentage = 50;
+    public int ForestPercentage = 50;
 
     [Range(0, 100)]
-    public int mountainPercentage = 5;
+    public int MountainPercentage = 5;
 
     [Range(0, 100)]
-    public int coastPercentage = 20;
-    
-    private GameObject selectedChild;
-    private SpriteRenderer selectorRenderer;
-    private ViewController landController;
-    private CameraController cameraController;
+    public int CoastPercentage = 20;
 
-    private Map map;
+    private SpriteRenderer _selectorRenderer;
+    private ViewController _viewController;
+    private CameraController _cameraController;
+
+    private Map _map;
 
     void Start()
     {
         SetSelector();
         LoadMap();
         SetCamera();
-        SetLandGenerator();
+        SetViewManager();
     }
 
-    void SetLandGenerator()
+    void SetViewManager()
     {
         ViewController controller = gameObject.AddComponent<ViewController>();
-        controller.MapUI = gameObject;
+        controller.ViewField = new View(_map);
+        controller.MapUi = gameObject;
         controller.RelativeBottomLeft = Vector2.zero;
-        controller.CameraController = cameraController;
-        controller.Selector = selectorRenderer;
+        controller.CameraController = _cameraController;
+        controller.Selector = _selectorRenderer;
         controller.Initialize();
         controller.DrawMap();
 
-        landController = controller;
-        cameraController.Land = landController;
+        _viewController = controller;
+        _cameraController.Land = _viewController;
     }
 
     private void LoadMap()
     {
-        if (useRandomSeed) seed = System.DateTime.UtcNow.ToString();
+        if (UseRandomSeed) Seed = System.DateTime.UtcNow.ToString();
 
-        Config.MapHeight = height;
-        Config.MapWidth = width;
-        Config.ViewHeight = height / 2;
-        Config.ViewWidth = width / 2;
-        Config.FillRatio = fillPercentage;
-        Config.ForestRatio = forestPercentage;
-        Config.MountainRatio = mountainPercentage;
-        Config.CoastRatio = coastPercentage;
-        Config.Seed = new System.Random(seed.GetHashCode());
-        Config.SmoothCount = smoothCount;
+        Config.MapHeight = Height;
+        Config.MapWidth = Width;
+        Config.ViewHeight = Height / 2;
+        Config.ViewWidth = Width / 2;
+        Config.FillRatio = FillPercentage;
+        Config.ForestRatio = ForestPercentage;
+        Config.MountainRatio = MountainPercentage;
+        Config.CoastRatio = CoastPercentage;
+        Config.Seed = new System.Random(Seed.GetHashCode());
+        Config.SmoothCount = SmoothCount;
         Config.TileIconPath = "Sprites/";
 
-        map = new Map();
+        _map = new Map();
     }
 
     void SetCamera()
     {
-        Vector3 cameraPosition = new Vector3(Config.ViewWidth/2 + 0.5f, Config.ViewHeight/2 + 0.5f, -5);
+        Vector3 cameraPosition = new Vector3(Config.ViewWidth / 2 + 0.5f, Config.ViewHeight / 2 + 0.5f, -5);
 
-        cameraController = Camera.main.transform.GetComponent<CameraController>();
-        cameraController.SetPosition(cameraPosition);
+        _cameraController = Camera.main.transform.GetComponent<CameraController>();
+        _cameraController.SetPosition(cameraPosition);
     }
 
     void SetSelector()
@@ -82,13 +82,13 @@ public class MapController : MonoBehaviour
         GameObject selector = new GameObject("selector");
         selector.transform.parent = transform;
         selector.transform.position = new Vector3(0, 0, 1);
-        selectorRenderer = selector.AddComponent<SpriteRenderer>();
-        selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
-        selectorRenderer.enabled = false;
-    }  
+        _selectorRenderer = selector.AddComponent<SpriteRenderer>();
+        _selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
+        _selectorRenderer.enabled = false;
+    }
 
     public Map GetMap()
     {
-        return map;
+        return _map;
     }
 }

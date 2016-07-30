@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using Orientation = Map.Orientation;
+using TileType = Map.TileType;
 
 public class TileController : MonoBehaviour
 {
@@ -28,11 +29,14 @@ public class TileController : MonoBehaviour
         _yPosition = y;
     }
 
-    public void SetLandType(Tile tile)
+    public void SetIcon(Tile tile)
     {
+        string iconPath = (tile.TileType == TileType.PLAIN || Tile.TileType == TileType.WATER) ? "" 
+            : Config.TileIconPath + tile.TileType.ToString().ToLower();
+
         _icon = transform.GetChild(0).gameObject;
         _icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
-        _icon.GetComponent<IconController>().SetSprite(Config.TileIconPath + tile.TileType.ToString().ToLower());
+        _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
         _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
     }
 

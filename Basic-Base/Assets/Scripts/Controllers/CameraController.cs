@@ -1,29 +1,30 @@
 using UnityEngine;
 using System.Collections;
 using Border = Land.Border;
+using ViewMode = View.ViewMode;
 
 public class CameraController : MonoBehaviour
 {
     public ViewController Land;
 
-    private Vector3 cameraPosition;
-    private Border viewBorders;
-    private const int maxSize = 10;
-    private const int minSize = 2;
-    private float cameraSize;
+    private Vector3 _cameraPosition;
+    private Border _viewBorders;
+    private const int MaxSize = 10;
+    private const int MinSize = 2;
+    private float _cameraSize;
 
     void Start()
     {
-        cameraSize = Camera.main.orthographicSize;
+        _cameraSize = Camera.main.orthographicSize;
 
         UpdateViewBorders();
     }
 
     void Update()
     {
-        cameraSize = Camera.main.orthographicSize;
+        _cameraSize = Camera.main.orthographicSize;
 
-        cameraPosition = Camera.main.transform.position;
+        _cameraPosition = Camera.main.transform.position;
 
         MoveInLand();
 
@@ -33,30 +34,32 @@ public class CameraController : MonoBehaviour
     private void MoveInMap()
     {
         Vector3 move = Vector3.zero;
-        float panSpeed = cameraSize * 0.1f;
+        float panSpeed = _cameraSize * 0.1f;
 
         if (Input.GetKey(KeyCode.W)) move.y = panSpeed;
         if (Input.GetKey(KeyCode.S)) move.y = -panSpeed;
         if (Input.GetKey(KeyCode.A)) move.x = -panSpeed;
         if (Input.GetKey(KeyCode.D)) move.x = panSpeed;
 
-        if (!IsCameraInViewWidth(move)) move.x = move.x > 0
-                ? move.x - (viewBorders.Right + move.x - Config.ViewWidth)
-                : move.x - (viewBorders.Left + move.x);
+        if (!IsCameraInViewWidth(move))
+            move.x = move.x > 0
+                ? move.x - (_viewBorders.Right + move.x - Config.ViewWidth)
+                : move.x - (_viewBorders.Left + move.x);
 
-        if (!IsCameraInViewHeight(move)) move.y = move.y > 0
-                ? move.y - (viewBorders.Top + move.y - Config.ViewHeight)
-                : move.y - (viewBorders.Bottom + move.y);
+        if (!IsCameraInViewHeight(move))
+            move.y = move.y > 0
+                ? move.y - (_viewBorders.Top + move.y - Config.ViewHeight)
+                : move.y - (_viewBorders.Bottom + move.y);
 
-        Camera.main.transform.position = cameraPosition + move;
-        cameraPosition += move;
+        Camera.main.transform.position = _cameraPosition + move;
+        _cameraPosition += move;
         UpdateViewBorders();
     }
 
     private void MoveInLand()
     {
         Vector3 move = Vector3.zero;
-        float panSpeed = cameraSize * 0.1f;
+        float panSpeed = _cameraSize * 0.1f;
 
         if (Input.GetKey(KeyCode.W)) move.y = panSpeed;
         if (Input.GetKey(KeyCode.S)) move.y = -panSpeed;
@@ -66,8 +69,8 @@ public class CameraController : MonoBehaviour
         if (!IsCameraInViewWidth(move))
         {
             move.x = move.x > 0
-                ? -viewBorders.Left
-                : Config.ViewWidth - viewBorders.Right;
+                ? -_viewBorders.Left
+                : Config.ViewWidth - _viewBorders.Right;
 
             Land.OnBorderReached(move.x > 0 ? Map.Orientation.RIGHT : Map.Orientation.LEFT);
         }
@@ -75,14 +78,15 @@ public class CameraController : MonoBehaviour
         if (!IsCameraInViewHeight(move))
         {
             move.y = move.y > 0
-                ? -viewBorders.Bottom
-                : Config.ViewHeight - viewBorders.Top;
+                ? -_viewBorders.Bottom
+                : Config.ViewHeight - _viewBorders.Top;
 
             Land.OnBorderReached(move.y > 0 ? Map.Orientation.TOP : Map.Orientation.BOTTOM);
         }
 
-        Camera.main.transform.position = cameraPosition + move;
-        cameraPosition += move;
+        Camera.main.transform.position = _cameraPosition + move;
+        _cameraPosition += move;
+        RelocateCamera();
         UpdateViewBorders();
     }
 
@@ -90,7 +94,7 @@ public class CameraController : MonoBehaviour
     {
         if (Input.GetAxis("Mouse ScrollWheel") < 0) // zoom back
         {
-            if (Camera.main.orthographicSize < maxSize)
+            if (Camera.main.orthographicSize < MaxSize)
             {
                 Camera.main.orthographicSize++;
                 UpdateViewBorders();
@@ -100,7 +104,7 @@ public class CameraController : MonoBehaviour
 
         if (Input.GetAxis("Mouse ScrollWheel") > 0) // zoom in
         {
-            if (Camera.main.orthographicSize > minSize)
+            if (Camera.main.orthographicSize > MinSize)
             {
                 Camera.main.orthographicSize--;
                 UpdateViewBorders();
@@ -110,35 +114,33 @@ public class CameraController : MonoBehaviour
 
     public void SetPosition(Vector3 position)
     {
-        if (States.View == CameraView.LAND)
-        {
-            position = new Vector3(position.x, position.y, position.z);
-        }
-
         Camera.main.transform.position = position;
+        _cameraPosition = position;
+
+        RelocateCamera();
     }
 
     public void ChangeView()
     {
-        States.View = (States.View == CameraView.LAND) ? CameraView.MAP : CameraView.LAND;
+        States.View = (States.View == ViewMode.LAND) ? ViewMode.MAP : ViewMode.LAND;
     }
 
     private void RelocateCamera()
     {
         float cameraSize = Camera.main.orthographicSize;
-        int multiplier = (States.View == CameraView.LAND) ? 10 : 1;
+        int multiplier = (States.View == ViewMode.LAND) ? 10 : 1;
 
-        if (cameraPosition.x - cameraSize * 2 < 0)
-            SetPosition(new Vector3(cameraSize * 2, cameraPosition.y, cameraPosition.z));
+        if (_cameraPosition.x - cameraSize * 2 < 0)
+            SetPosition(new Vector3(cameraSize * 2, _cameraPosition.y, _cameraPosition.z));
 
-        if (cameraPosition.x + cameraSize * 2 >= Config.MapWidth * multiplier)
-            SetPosition(new Vector3(Config.MapWidth - cameraSize * 2, cameraPosition.y, cameraPosition.z));
+        if (_cameraPosition.x + cameraSize * 2 >= Config.MapWidth * multiplier)
+            SetPosition(new Vector3(Config.MapWidth - cameraSize * 2, _cameraPosition.y, _cameraPosition.z));
 
-        if (cameraPosition.y - cameraSize < 0)
-            SetPosition(Camera.main.transform.position = new Vector3(cameraPosition.x, cameraSize, cameraPosition.z));
+        if (_cameraPosition.y - cameraSize < 0)
+            SetPosition(Camera.main.transform.position = new Vector3(_cameraPosition.x, cameraSize, _cameraPosition.z));
 
-        if (cameraPosition.y + cameraSize >= Config.MapHeight * multiplier)
-            SetPosition(Camera.main.transform.position = new Vector3(cameraPosition.x, Config.MapHeight - cameraSize, cameraPosition.z));
+        if (_cameraPosition.y + cameraSize >= Config.MapHeight * multiplier)
+            SetPosition(Camera.main.transform.position = new Vector3(_cameraPosition.x, Config.MapHeight - cameraSize, _cameraPosition.z));
     }
 
     private bool IsCameraInViewWidth(Vector3 move)
@@ -147,8 +149,8 @@ public class CameraController : MonoBehaviour
 
         int currentWidth = Config.ViewWidth;
 
-        return cameraPosition.x - cameraSize + move.x >= 0 &&
-               cameraPosition.x + cameraSize + move.x < currentWidth;
+        return _cameraPosition.x - cameraSize + move.x >= 0 &&
+               _cameraPosition.x + cameraSize + move.x < currentWidth;
     }
 
     private bool IsCameraInViewHeight(Vector3 move)
@@ -157,26 +159,20 @@ public class CameraController : MonoBehaviour
 
         int currentHeight = Config.ViewHeight;
 
-        return cameraPosition.y - cameraSize + move.y >= 0 &&
-               cameraPosition.y + cameraSize + move.y < currentHeight;
+        return _cameraPosition.y - cameraSize + move.y >= 0 &&
+               _cameraPosition.y + cameraSize + move.y < currentHeight;
     }
 
     private void UpdateViewBorders()
     {
-        cameraSize = Camera.main.orthographicSize;
+        _cameraSize = Camera.main.orthographicSize;
 
-        viewBorders = new Border
+        _viewBorders = new Border
         {
-            Bottom = cameraPosition.y - cameraSize,
-            Top = cameraPosition.y + cameraSize,
-            Left = cameraPosition.x - cameraSize * 2,
-            Right = cameraPosition.x + cameraSize * 2
+            Bottom = _cameraPosition.y - _cameraSize,
+            Top = _cameraPosition.y + _cameraSize,
+            Left = _cameraPosition.x - _cameraSize * 2,
+            Right = _cameraPosition.x + _cameraSize * 2
         };
-    }
-
-    public enum CameraView
-    {
-        MAP,
-        LAND
     }
 }
