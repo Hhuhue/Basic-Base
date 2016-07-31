@@ -36,6 +36,7 @@ public class ViewController : MonoBehaviour
                 icon.transform.parent = tileObject.transform;
 
                 tileObject.GetComponent<TileController>().SetTile(tile);
+                tileObject.GetComponent<TileController>().SetPosition(x, y);
 
                 _children[x, y] = tileObject;
             }
@@ -54,35 +55,58 @@ public class ViewController : MonoBehaviour
 
         if (!borderState.AnyBorderReached) return;
 
+        bool originChanged = false;
         Vector2 relativeOrigin = ViewField.Origin;
         Vector3 cameraMove = Vector3.zero;
 
         CameraEndState endState = GetCameraEndState(borderState, relativeOrigin);
 
+        float jumpSizeX = Config.ViewWidth - 1 - cameraSize * 4;
         if (Input.GetKey(KeyCode.A) && borderState.LeftBorderReached && !endState.LeftEndReached)
         {
-            float jumpSize = Config.ViewWidth - 1 - cameraSize * 4;
-            cameraMove.x = jumpSize;
-            relativeOrigin.x -= jumpSize;
+            originChanged = true;
+            if (relativeOrigin.x - jumpSizeX < 0)
+                jumpSizeX = relativeOrigin.x;
+
+            cameraMove.x = jumpSizeX;
+            relativeOrigin.x -= jumpSizeX;
         }
         else if (Input.GetKey(KeyCode.D) && borderState.RightBorderReached && !endState.RightEndReached)
         {
-            float jumpSize = -(cameraPosition.x + 1 - cameraSize * 2);
-            cameraMove.x = jumpSize;
-            relativeOrigin.x -= jumpSize;
+            originChanged = true;
+            if (relativeOrigin.x + jumpSizeX > Mathf.Round((float)Config.MapWidth / 2))
+                jumpSizeX = Mathf.Round((float)Config.MapWidth / 2) - relativeOrigin.x;
+
+            cameraMove.x = -jumpSizeX;
+            relativeOrigin.x += jumpSizeX;
         }
 
+        float jumpSizeY = Config.ViewHeight - 1 - cameraSize * 2;
         if (Input.GetKey(KeyCode.S) && borderState.BottomBorderReached && !endState.BottomEndReached)
         {
+            originChanged = true;
+            if (relativeOrigin.y - jumpSizeY < 0)
+                jumpSizeY = relativeOrigin.y;
+
+            cameraMove.y = jumpSizeY;
+            relativeOrigin.y -= jumpSizeY;
         }
         else if (Input.GetKey(KeyCode.W) && borderState.TopBorderReached && !endState.TopEndReached)
         {
+            originChanged = true;
+            if (relativeOrigin.y + cameraSize + jumpSizeY > Mathf.Round((float)Config.MapHeight / 2))
+                jumpSizeY = Mathf.Round((float)Config.MapHeight / 2) - relativeOrigin.y;
+
+            cameraMove.y = -jumpSizeY;
+            relativeOrigin.y += jumpSizeY;
         }
 
-        //if(Vector3.zero != cameraMove)
-        //    mainCamera.transform.position += cameraMove;
-        ViewField.SetOrigin(relativeOrigin);
+        if (!originChanged) return;
         Debug.Log(relativeOrigin.ToString());
+        mainCamera.transform.position += cameraMove;
+
+        ViewField.SetOrigin(relativeOrigin);
+        UpdateView();
     }
 
     void SetSelector()
@@ -106,6 +130,20 @@ public class ViewController : MonoBehaviour
 
         _selectorRenderer.enabled = true;
         _selectorRenderer.transform.position = position;
+    }
+
+    private void UpdateView()
+    {
+        Tile[,] view = ViewField.GetView();
+
+        for (int x = 0; x < Config.ViewWidth; x++)
+        {
+            for (int y = 0; y < Config.ViewHeight; y++)
+            {
+                TileController tile = _children[x, y].GetComponent<TileController>();
+                tile.SetTile(view[x, y]);
+            }
+        }
     }
 
     private CameraBorderState GetCameraBorderState(Vector3 cameraPosition, float cameraSize)

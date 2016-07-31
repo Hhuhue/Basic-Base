@@ -9,6 +9,8 @@ public class TileController : MonoBehaviour
     private Tile _tile;
     private GameObject _icon;
     private ViewController _controller;
+    private int _xPosition;
+    private int _yPosition;
 
     void Start()
     {
@@ -24,7 +26,13 @@ public class TileController : MonoBehaviour
     {
         if(_controller == null) return;
 
-        _controller.SelectTile((int)_tile.Position.x, (int)_tile.Position.y);
+        _controller.SelectTile(_xPosition, _yPosition);
+    }
+
+    public void SetPosition(int x, int y)
+    {
+        _xPosition = x;
+        _yPosition = y;
     }
 
     public void SetTile(Tile tile)
@@ -40,7 +48,7 @@ public class TileController : MonoBehaviour
         SetIcon(tile);
     }
 
-    public void SetIcon(Tile tile)
+    private void SetIcon(Tile tile)
     {
         _tile = tile;
 
