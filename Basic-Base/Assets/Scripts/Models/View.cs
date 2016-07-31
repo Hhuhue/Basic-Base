@@ -7,7 +7,7 @@ using Orientation = Map.Orientation;
 
 public class View
 {
-    public Vector2 Origin { get; set; }
+    public Vector2 Origin { get; private set; }
 
     private readonly Tile[,] _viewField;
     private readonly Map _map;

@@ -50,27 +50,39 @@ public class ViewController : MonoBehaviour
         Vector3 cameraPosition = mainCamera.transform.position;
         float cameraSize = mainCamera.orthographicSize;
 
-        bool leftBorderReached = cameraPosition.x - cameraSize * 2 <= 1;
-        bool rightBorderReached = cameraPosition.x + cameraSize * 2 >= Config.ViewWidth - 1;
-        bool bottomBorderReached = cameraPosition.y - cameraSize <= 1;
-        bool topBorderReached = cameraPosition.y + cameraSize >= Config.ViewHeight - 1;
-        bool anyBorderReached = leftBorderReached || rightBorderReached || topBorderReached || bottomBorderReached;
+        CameraBorderState borderState = GetCameraBorderState(cameraPosition, cameraSize);
 
-        if(!anyBorderReached) return;
+        if (!borderState.AnyBorderReached) return;
 
-        if (Input.GetKey(KeyCode.A) && leftBorderReached)
+        Vector2 relativeOrigin = ViewField.Origin;
+        Vector3 cameraMove = Vector3.zero;
+
+        CameraEndState endState = GetCameraEndState(borderState, relativeOrigin);
+
+        if (Input.GetKey(KeyCode.A) && borderState.LeftBorderReached && !endState.LeftEndReached)
+        {
+            float jumpSize = Config.ViewWidth - 1 - cameraSize * 4;
+            cameraMove.x = jumpSize;
+            relativeOrigin.x -= jumpSize;
+        }
+        else if (Input.GetKey(KeyCode.D) && borderState.RightBorderReached && !endState.RightEndReached)
+        {
+            float jumpSize = -(cameraPosition.x + 1 - cameraSize * 2);
+            cameraMove.x = jumpSize;
+            relativeOrigin.x -= jumpSize;
+        }
+
+        if (Input.GetKey(KeyCode.S) && borderState.BottomBorderReached && !endState.BottomEndReached)
         {
         }
-        else if (Input.GetKey(KeyCode.D) && rightBorderReached)
+        else if (Input.GetKey(KeyCode.W) && borderState.TopBorderReached && !endState.TopEndReached)
         {
         }
 
-        if (Input.GetKey(KeyCode.S) && bottomBorderReached)
-        {
-        }
-        else if (Input.GetKey(KeyCode.W) && topBorderReached)
-        {
-        }
+        //if(Vector3.zero != cameraMove)
+        //    mainCamera.transform.position += cameraMove;
+        ViewField.SetOrigin(relativeOrigin);
+        Debug.Log(relativeOrigin.ToString());
     }
 
     void SetSelector()
@@ -94,5 +106,58 @@ public class ViewController : MonoBehaviour
 
         _selectorRenderer.enabled = true;
         _selectorRenderer.transform.position = position;
+    }
+
+    private CameraBorderState GetCameraBorderState(Vector3 cameraPosition, float cameraSize)
+    {
+        return new CameraBorderState
+        {
+            LeftBorderReached = cameraPosition.x - cameraSize * 2 <= 1,
+            RightBorderReached = cameraPosition.x + cameraSize * 2 >= Config.ViewWidth - 1,
+            BottomBorderReached = cameraPosition.y - cameraSize <= 1,
+            TopBorderReached = cameraPosition.y + cameraSize >= Config.ViewHeight - 1
+        };
+    }
+
+    private CameraEndState GetCameraEndState(CameraBorderState borderState, Vector2 relativeOrigin)
+    {
+        return new CameraEndState
+        {
+            LeftEndReached = borderState.LeftBorderReached && relativeOrigin.x <= 0,
+            RightEndReached = borderState.RightBorderReached && relativeOrigin.x >= Config.MapWidth,
+            BottomEndReached = borderState.BottomBorderReached && relativeOrigin.y <= 0,
+            TopEndReached = borderState.TopBorderReached && relativeOrigin.y >= Config.MapHeight
+        };
+    }
+
+    private struct CameraBorderState
+    {
+        public bool LeftBorderReached { get; set; }
+
+        public bool RightBorderReached { get; set; }
+
+        public bool BottomBorderReached { get; set; }
+
+        public bool TopBorderReached { get; set; }
+
+        public bool AnyBorderReached
+        {
+            get
+            {
+                return LeftBorderReached || RightBorderReached
+                    || BottomBorderReached || TopBorderReached;
+            }
+        }
+    }
+
+    private struct CameraEndState
+    {
+        public bool LeftEndReached { get; set; }
+
+        public bool RightEndReached { get; set; }
+
+        public bool BottomEndReached { get; set; }
+
+        public bool TopEndReached { get; set; }
     }
 }
