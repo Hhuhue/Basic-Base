@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using TileType = Map.TileType;
 using LandType = Land.LandType;
 using Orientation = Map.Orientation;
@@ -56,10 +57,16 @@ public class ViewController : MonoBehaviour
         if (!borderState.AnyBorderReached) return;
 
         bool originChanged = false;
+        int multiplier = (Config.ViewMode == View.ViewMode.MAP) ? 0 : 10;
+        int modifier = (multiplier == 0) ? -1 : 1;
+
         Vector2 relativeOrigin = ViewField.Origin;
         Vector3 cameraMove = Vector3.zero;
 
-        CameraEndState endState = GetCameraEndState(borderState, relativeOrigin);
+        float originXLimit = Config.MapWidth * multiplier - Mathf.Round((float)Config.MapWidth / 2) * modifier;
+        float originYLimit = Config.MapHeight * multiplier - Mathf.Round((float)Config.MapHeight / 2) * modifier;
+
+        CameraEndState endState = GetCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
 
         float jumpSizeX = Config.ViewWidth - 1 - cameraSize * 4;
         if (Input.GetKey(KeyCode.A) && borderState.LeftBorderReached && !endState.LeftEndReached)
@@ -74,7 +81,7 @@ public class ViewController : MonoBehaviour
         else if (Input.GetKey(KeyCode.D) && borderState.RightBorderReached && !endState.RightEndReached)
         {
             originChanged = true;
-            if (relativeOrigin.x + jumpSizeX > Mathf.Round((float)Config.MapWidth / 2))
+            if (relativeOrigin.x + jumpSizeX > originXLimit)
                 jumpSizeX = Mathf.Round((float)Config.MapWidth / 2) - relativeOrigin.x;
 
             cameraMove.x = -jumpSizeX;
@@ -94,15 +101,15 @@ public class ViewController : MonoBehaviour
         else if (Input.GetKey(KeyCode.W) && borderState.TopBorderReached && !endState.TopEndReached)
         {
             originChanged = true;
-            if (relativeOrigin.y + cameraSize + jumpSizeY > Mathf.Round((float)Config.MapHeight / 2))
-                jumpSizeY = Mathf.Round((float)Config.MapHeight / 2) - relativeOrigin.y;
+            if (relativeOrigin.y + cameraSize + jumpSizeY > originYLimit)
+                jumpSizeY = originYLimit - relativeOrigin.y;
 
             cameraMove.y = -jumpSizeY;
             relativeOrigin.y += jumpSizeY;
         }
 
         if (!originChanged) return;
-        Debug.Log(relativeOrigin.ToString());
+        Debug.Log(originXLimit + " " + originYLimit);
         mainCamera.transform.position += cameraMove;
 
         ViewField.SetOrigin(relativeOrigin);
@@ -121,7 +128,9 @@ public class ViewController : MonoBehaviour
 
     public void LoadTile(Tile tile)
     {
-        throw new System.NotImplementedException();
+        Config.ViewMode = View.ViewMode.LAND;
+        ViewField.SetOrigin(new Vector2((int)tile.Position.x, (int)tile.Position.y) * 10);
+        UpdateView();
     }
 
     public void SelectTile(int xPosition, int yPosition)
@@ -151,20 +160,20 @@ public class ViewController : MonoBehaviour
         return new CameraBorderState
         {
             LeftBorderReached = cameraPosition.x - cameraSize * 2 <= 1,
-            RightBorderReached = cameraPosition.x + cameraSize * 2 >= Config.ViewWidth - 1,
+            RightBorderReached = cameraPosition.x + cameraSize * 2 >= Config.ViewWidth,
             BottomBorderReached = cameraPosition.y - cameraSize <= 1,
-            TopBorderReached = cameraPosition.y + cameraSize >= Config.ViewHeight - 1
+            TopBorderReached = cameraPosition.y + cameraSize >= Config.ViewHeight
         };
     }
 
-    private CameraEndState GetCameraEndState(CameraBorderState borderState, Vector2 relativeOrigin)
+    private CameraEndState GetCameraEndState(CameraBorderState borderState, Vector2 relativeOrigin, float xLimit, float yLimit)
     {
         return new CameraEndState
         {
             LeftEndReached = borderState.LeftBorderReached && relativeOrigin.x <= 0,
-            RightEndReached = borderState.RightBorderReached && relativeOrigin.x >= Config.MapWidth,
+            RightEndReached = borderState.RightBorderReached && relativeOrigin.x >= xLimit,
             BottomEndReached = borderState.BottomBorderReached && relativeOrigin.y <= 0,
-            TopEndReached = borderState.TopBorderReached && relativeOrigin.y >= Config.MapHeight
+            TopEndReached = borderState.TopBorderReached && relativeOrigin.y >= yLimit
         };
     }
 

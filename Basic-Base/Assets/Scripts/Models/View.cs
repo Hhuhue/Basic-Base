@@ -39,10 +39,10 @@ public class View
             for (int y = 0; y < Config.ViewHeight; y++)
             {
                 Vector2 tilePosition = new Vector2(Origin.x + x, Origin.y + y);
-                Vector2 landPiecePosition = new Vector2((Origin.x + x) * 10 % 10, (Origin.y + y) * 10 % 10);
+                Vector2 landPiecePosition = new Vector2((Origin.x + x) % 10, (Origin.y + y) % 10);
 
                 Tile tile = Config.ViewMode == ViewMode.LAND
-                    ? _map.GetLand((int)tilePosition.x, (int)tilePosition.y)
+                    ? _map.GetLand((int)tilePosition.x / 10, (int)tilePosition.y / 10)
                         .GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y)
                     : _map.GetTile((int)tilePosition.x, (int)tilePosition.y);
 

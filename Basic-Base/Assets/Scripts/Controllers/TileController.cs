@@ -39,9 +39,15 @@ public class TileController : MonoBehaviour
     {
         _tile = tile;
 
-        string sprite = tile.TileType == TileType.WATER
-            ? TileType.WATER.ToString().ToLower()
-            : TileType.PLAIN.ToString().ToLower();
+        bool isTileWater = (Config.ViewMode == View.ViewMode.MAP)
+            ? tile.TileType == TileType.WATER
+            : tile.LandType == LandType.WATER;
+
+        string groudSprite = (Config.ViewMode == View.ViewMode.MAP)
+            ? TileType.PLAIN.ToString().ToLower()
+            : LandType.GRASS.ToString().ToLower();
+
+        string sprite = isTileWater ? TileType.WATER.ToString().ToLower() : groudSprite;
 
         GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + sprite);
 
