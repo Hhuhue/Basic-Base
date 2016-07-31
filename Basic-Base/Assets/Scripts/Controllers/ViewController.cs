@@ -42,6 +42,37 @@ public class ViewController : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (!Input.anyKey) return;
+
+        Camera mainCamera = Camera.main;
+        Vector3 cameraPosition = mainCamera.transform.position;
+        float cameraSize = mainCamera.orthographicSize;
+
+        bool leftBorderReached = cameraPosition.x - cameraSize * 2 <= 1;
+        bool rightBorderReached = cameraPosition.x + cameraSize * 2 >= Config.ViewWidth - 1;
+        bool bottomBorderReached = cameraPosition.y - cameraSize <= 1;
+        bool topBorderReached = cameraPosition.y + cameraSize >= Config.ViewHeight - 1;
+        bool anyBorderReached = leftBorderReached || rightBorderReached || topBorderReached || bottomBorderReached;
+
+        if(!anyBorderReached) return;
+
+        if (Input.GetKey(KeyCode.A) && leftBorderReached)
+        {
+        }
+        else if (Input.GetKey(KeyCode.D) && rightBorderReached)
+        {
+        }
+
+        if (Input.GetKey(KeyCode.S) && bottomBorderReached)
+        {
+        }
+        else if (Input.GetKey(KeyCode.W) && topBorderReached)
+        {
+        }
+    }
+
     void SetSelector()
     {
         GameObject selector = new GameObject("selector");

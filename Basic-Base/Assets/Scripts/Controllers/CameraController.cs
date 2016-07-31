@@ -24,14 +24,20 @@ public class CameraController : MonoBehaviour
 
     private void ManageMovement()
     {
-        float speed = 0.1f * _thisCamera.orthographicSize;
+        float currentSize = _thisCamera.orthographicSize;
+        Vector3 currentPosition = _thisCamera.transform.position;
 
-        Vector3 move = Vector3.zero;
+        Vector3 move = GetMove();
 
-        if (Input.GetKey(KeyCode.A)) move.x = -speed;
-        if (Input.GetKey(KeyCode.D)) move.x = speed;
-        if (Input.GetKey(KeyCode.S)) move.y = -speed;
-        if (Input.GetKey(KeyCode.W)) move.y = speed;
+        if (currentPosition.x + currentSize * 2 + move.x > Config.ViewWidth)
+            move.x = Config.ViewWidth - currentPosition.x - currentSize * 2;
+        else if (currentPosition.x - currentSize * 2 + move.x < 0)
+            move.x = 0 - currentPosition.x + currentSize * 2;
+
+        if (currentPosition.y + currentSize + move.y > Config.ViewHeight)
+            move.y = Config.ViewHeight - currentPosition.y - currentSize;
+        else if (currentPosition.y - currentSize + move.y < 0)
+            move.y = 0 - currentPosition.y + currentSize;
 
         _thisCamera.transform.position += move;
     }
@@ -41,9 +47,23 @@ public class CameraController : MonoBehaviour
         float currentSize = _thisCamera.orthographicSize;
 
         if (Input.GetAxis("Mouse ScrollWheel") > 0 && currentSize - 1 >= 1)
-            _thisCamera.orthographicSize --;
+            _thisCamera.orthographicSize--;
 
         if (Input.GetAxis("Mouse ScrollWheel") < 0 && currentSize + 1 <= _maxSize)
-            _thisCamera.orthographicSize ++;
+            _thisCamera.orthographicSize++;
+    }
+
+    private Vector3 GetMove()
+    {
+        Vector3 move = Vector3.zero;
+
+        float speed = _thisCamera.orthographicSize / 10;
+
+        if (Input.GetKey(KeyCode.A)) move.x = -speed;
+        if (Input.GetKey(KeyCode.D)) move.x = speed;
+        if (Input.GetKey(KeyCode.S)) move.y = -speed;
+        if (Input.GetKey(KeyCode.W)) move.y = speed;
+
+        return move;
     }
 }
