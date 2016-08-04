@@ -1,11 +1,4 @@
 ﻿using UnityEngine;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using TileType = Map.TileType;
-using LandType = Land.LandType;
-using Orientation = Map.Orientation;
-using Border = Land.Border;
 
 public class ViewController : MonoBehaviour
 {
