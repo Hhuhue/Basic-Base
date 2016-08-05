@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using TileType = Tile.TileType;
 using System;
 
 public class Map
@@ -56,8 +57,7 @@ public class Map
                 map[x, y] = new Tile()
                 {
                     Position = new Vector2(x, y),
-                    Icons = new List<string>(),
-                    TileType = Config.Seed.Next(0, 100) < Config.FillRatio ? TileType.PLAIN : TileType.WATER,
+                    Type = Config.Seed.Next(0, 100) < Config.FillRatio ? TileType.PLAIN : TileType.WATER,
                     Orientation = Orientation.DEFAULT
                 };
             }
@@ -74,8 +74,8 @@ public class Map
                 {
                     int surroundingLandCount = GetSurroundingLandCount(x, y);
 
-                    if (surroundingLandCount > 4) map[x, y].TileType = TileType.PLAIN;
-                    if (surroundingLandCount < 4) map[x, y].TileType = TileType.WATER;
+                    if (surroundingLandCount > 4) map[x, y].Type = TileType.PLAIN;
+                    if (surroundingLandCount < 4) map[x, y].Type = TileType.WATER;
                 }
             }
         }
@@ -91,7 +91,7 @@ public class Map
             {
                 if (IsPositionValid(x, y) && !(x == xPosition && y == yPosition))
                 {
-                    if (map[x, y].TileType != TileType.WATER) landCount++;
+                    if (map[x, y].Type != TileType.WATER) landCount++;
                 }
             }
         }
@@ -107,29 +107,25 @@ public class Map
         {
             for (int y = 0; y < Config.MapHeight; y++)
             {
-                if (map[x, y].TileType != TileType.WATER)
+                if (map[x, y].Type == TileType.WATER) continue;
+
+                int number = random.Next(0, 100);
+
+                if (resource == TileType.COAST)
                 {
-                    int number = random.Next(0, 100);
+                    Orientation coastOrientation = GetCoastOrientation(x, y);
+                    if (coastOrientation == Orientation.DEFAULT || number >= ratio) continue;
 
-                    if (resource == TileType.COAST)
-                    {
-                        Orientation coastOrientation = GetCoastOrientation(x, y);
-                        if (coastOrientation != Orientation.DEFAULT && number < ratio)
-                        {
-                            TileType coastType = IsCoastEnd(x, y) ? TileType.COAST_END
-                                : IsOrientationCorner(coastOrientation) ? TileType.COAST_CORNER
-                                : TileType.COAST;
+                    TileType coastType = IsCoastEnd(x, y) ? TileType.COAST_END
+                        : IsOrientationCorner(coastOrientation) ? TileType.COAST_CORNER
+                            : TileType.COAST;
 
-                            map[x, y].TileType = coastType;
-                            map[x, y].Orientation = coastOrientation;
-                            map[x, y].Icons.Add(Config.SpritesPath + coastType.ToString().ToLower());
-                        }
-                    }
-                    else
-                    {
-                        map[x, y].TileType = number < ratio ? resource : map[x, y].TileType;
-                        map[x, y].Icons.Add(Config.SpritesPath + map[x, y].TileType.ToString().ToLower());
-                    }
+                    map[x, y].Icon = coastType;
+                    map[x, y].Orientation = coastOrientation;
+                }
+                else
+                {
+                    map[x, y].Icon = number < ratio ? resource : map[x, y].Icon;
                 }
             }
         }
@@ -148,10 +144,10 @@ public class Map
 
     private Orientation GetCoastOrientation(int x, int y)
     {
-        bool waterOnTop = y + 1 < Config.MapHeight && map[x, y + 1].TileType == TileType.WATER;
-        bool waterOnBottom = y - 1 >= 0 && map[x, y - 1].TileType == TileType.WATER;
-        bool waterOnLeft = x - 1 >= 0 && map[x - 1, y].TileType == TileType.WATER;
-        bool waterOnRight = x + 1 < Config.MapWidth && map[x + 1, y].TileType == TileType.WATER;
+        bool waterOnTop = y + 1 < Config.MapHeight && map[x, y + 1].Type == TileType.WATER;
+        bool waterOnBottom = y - 1 >= 0 && map[x, y - 1].Type == TileType.WATER;
+        bool waterOnLeft = x - 1 >= 0 && map[x - 1, y].Type == TileType.WATER;
+        bool waterOnRight = x + 1 < Config.MapWidth && map[x + 1, y].Type == TileType.WATER;
 
         if (waterOnBottom && waterOnTop)
         {
@@ -183,24 +179,12 @@ public class Map
     private bool IsCoastEnd(int x, int y)
     {
         int trueConditionCount = 0;
-        trueConditionCount += (y + 1 < Config.MapHeight && map[x, y + 1].TileType == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (y - 1 >= 0 && map[x, y - 1].TileType == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (x - 1 >= 0 && map[x - 1, y].TileType == TileType.WATER) ? 1 : 0;
-        trueConditionCount += (x + 1 < Config.MapWidth && map[x + 1, y].TileType == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (y + 1 < Config.MapHeight && map[x, y + 1].Type == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (y - 1 >= 0 && map[x, y - 1].Type == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x - 1 >= 0 && map[x - 1, y].Type == TileType.WATER) ? 1 : 0;
+        trueConditionCount += (x + 1 < Config.MapWidth && map[x + 1, y].Type == TileType.WATER) ? 1 : 0;
 
         return trueConditionCount > 2;
-    }
-
-    public enum TileType
-    {
-        DEFAULT,
-        WATER,
-        PLAIN,
-        FOREST,
-        MOUNTAIN,
-        COAST,
-        COAST_CORNER,
-        COAST_END
     }
 
     public enum Orientation

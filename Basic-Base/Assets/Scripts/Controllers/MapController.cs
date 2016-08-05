@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using TileType = Map.TileType;
+using TileType = Tile.TileType;
 
 public class MapController : MonoBehaviour
 {

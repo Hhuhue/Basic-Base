@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
-using TileType = Map.TileType;
+using TileType = Tile.TileType;
 using Orientation = Map.Orientation;
 
 public class Land
@@ -33,7 +33,7 @@ public class Land
 
     private void GenerateLand()
     {
-        switch (tile.TileType)
+        switch (tile.GetGlobalType())
         {
             case TileType.PLAIN:
                 GeneratePlain();
@@ -69,12 +69,12 @@ public class Land
             for (int y = 0; y < LAND_HEIGHT; y++)
             {
                 int number = random.Next(0, 100);
-                LandType type = number < 2 ? LandType.ROCK
-                    : number < 50 ? LandType.PINE
-                    : number < 90 ? LandType.TREE
-                    : LandType.GRASS;
+                TileType icon = number < 2 ? TileType.ROCK
+                    : number < 50 ? TileType.PINE
+                    : number < 90 ? TileType.TREE
+                    : TileType.DEFAULT;
 
-                SetLandPiece(x, y, type);
+                SetLandPiece(x, y, TileType.GRASS, icon);
             }
         }
     }
@@ -88,11 +88,11 @@ public class Land
             for (int y = 0; y < LAND_HEIGHT; y++)
             {
                 int number = random.Next(0, 100);
-                LandType type = number < 2 ? LandType.ROCK
-                    : number < 4 ? LandType.PINE
-                    : LandType.GRASS;
+                TileType icon = number < 2 ? TileType.ROCK
+                    : number < 4 ? TileType.PINE
+                    : TileType.DEFAULT;
 
-                SetLandPiece(x, y, type);
+                SetLandPiece(x, y, TileType.GRASS, icon);
             }
         }
     }
@@ -103,7 +103,7 @@ public class Land
         {
             for (int y = 0; y < LAND_HEIGHT; y++)
             {
-                SetLandPiece(x, y, LandType.WATER);
+                SetLandPiece(x, y, TileType.WATER, TileType.DEFAULT);
             }
         }
     }
@@ -114,7 +114,7 @@ public class Land
 
         int waterThickness = random.Next(0, 2);
         int sandThickness = random.Next(1, 3);
-        bool isCoastEnd = tile.TileType == TileType.COAST_END;
+        bool isCoastEnd = tile.Type == TileType.COAST_END;
 
         Border[] waterZones = GetCoastBorder(waterThickness, tile.Orientation, isCoastEnd);
         Border[] sandZones = GetCoastBorder(sandThickness + waterThickness, tile.Orientation, isCoastEnd);
@@ -123,11 +123,11 @@ public class Land
         {
             for (int y = 0; y < LAND_HEIGHT; y++)
             {
-                LandType type = waterZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.WATER
-                    : sandZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.SAND
-                    : LandType.GRASS;
+                TileType icon = waterZones.Any(border => border.IsPositionWithinBorder(x, y)) ? TileType.WATER
+                    : sandZones.Any(border => border.IsPositionWithinBorder(x, y)) ? TileType.SAND
+                    : TileType.DEFAULT;
 
-                SetLandPiece(x, y, type);
+                SetLandPiece(x, y, TileType.GRASS, icon);
             }
         }
     }
@@ -142,12 +142,12 @@ public class Land
         {
             for (int y = 0; y < LAND_HEIGHT; y++)
             {
-                LandType type = mountainZones.Any(border => border.IsPositionOnBorder(x, y)) ? LandType.MOUNTAIN_FACE
-                    : mountainZones.Any(border => border.IsPositionWithinBorder(x, y)) ? LandType.MOUNTAIN_TOP
-                    : random.Next(0, 100) < 40 ? LandType.ROCK
-                    : LandType.GRASS;
+                TileType type = mountainZones.Any(border => border.IsPositionOnBorder(x, y)) ? TileType.MOUNTAIN_FACE
+                    : mountainZones.Any(border => border.IsPositionWithinBorder(x, y)) ? TileType.MOUNTAIN_TOP
+                    : random.Next(0, 100) < 40 ? TileType.ROCK
+                    : TileType.DEFAULT;
 
-                SetLandPiece(x, y, type);
+                SetLandPiece(x, y, TileType.GRASS, type);
             }
         }
 
@@ -158,27 +158,29 @@ public class Land
                 for (int y = (int)layer.Bottom; y <= layer.Top; y++)
                 {
                     Orientation orientation = GetMountainFaceOrientation(x, y, layer);
-                    LandType type = map.IsOrientationCorner(orientation) ? LandType.MOUNTAIN_CORNER : land[x, y].LandType;
+                    TileType type = map.IsOrientationCorner(orientation) ? TileType.MOUNTAIN_CORNER : land[x, y].Icon;
 
-                    land[x, y].LandType = type;
-                    land[x, y].Orientation = type == LandType.MOUNTAIN_TOP ? Orientation.DEFAULT : orientation;
+                    land[x, y].Icon = type;
+                    land[x, y].Orientation = type == TileType.MOUNTAIN_TOP ? Orientation.DEFAULT : orientation;
                 }
             }
         }
     }
 
-    private void SetLandPiece(int x, int y, LandType type)
+    private void SetLandPiece(int x, int y, TileType type, TileType icon)
     {
         land[x, y] = new Tile()
         {
             Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
-            LandType = type
+            Type = type,
+            Icon = icon
         };
     }
 
     private void SmoothLand()
     {
-        if (!(tile.TileType == TileType.PLAIN || tile.TileType == TileType.FOREST)) return;
+        TileType type = tile.GetGlobalType();
+        if (!(type == TileType.PLAIN || type == TileType.FOREST)) return;
 
         int xPosition = (int)tile.Position.x;
         int yPosition = (int)tile.Position.y;
@@ -192,163 +194,163 @@ public class Land
 
         for (int x = 0; x < LAND_WIDTH; x++)
         {
-            LandType newType = land[x, LAND_HEIGHT - 1].LandType;
+            TileType newType = land[x, LAND_HEIGHT - 1].Icon;
             Orientation newOrientation = land[x, LAND_HEIGHT - 1].Orientation;
 
-            switch (topTile.TileType)
+            switch (topTile.GetGlobalType())
             {
                 case TileType.WATER:
-                    if (x == 0 && leftTile.TileType == TileType.WATER)
+                    if (x == 0 && leftTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.TOP_LEFT;
                     }
-                    else if (x == LAND_WIDTH - 1 && rightTile.TileType == TileType.WATER)
+                    else if (x == LAND_WIDTH - 1 && rightTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.TOP_RIGHT;
                     }
                     else
                     {
-                        newType = LandType.CLIFF;
+                        newType = TileType.CLIFF;
                         newOrientation = Orientation.TOP;
                     }
                     break;
 
                 case TileType.FOREST:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 35) ? LandType.TREE
-                        : (random.Next(0, 100) < 70) ? LandType.PINE
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 35) ? TileType.TREE
+                        : (random.Next(0, 100) < 70) ? TileType.PINE
                         : newType;
                     break;
 
                 case TileType.MOUNTAIN:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 70) ? LandType.ROCK : newType;
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 70) ? TileType.ROCK : newType;
                     break;
             }
 
-            land[x, LAND_HEIGHT - 1].LandType = newType;
+            land[x, LAND_HEIGHT - 1].Icon = newType;
             land[x, LAND_HEIGHT - 1].Orientation = newOrientation;
             
-            newType = land[x, 0].LandType;
+            newType = land[x, 0].Icon;
             newOrientation = land[x, 0].Orientation;
 
-            switch (bottomTile.TileType)
+            switch (bottomTile.GetGlobalType())
             {
                 case TileType.WATER:
-                    if (x == 0 && leftTile.TileType == TileType.WATER)
+                    if (x == 0 && leftTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.BOTTOM_LEFT;
                     }
-                    else if (x == LAND_WIDTH - 1 && rightTile.TileType == TileType.WATER)
+                    else if (x == LAND_WIDTH - 1 && rightTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.BOTTOM_RIGHT;
                     }
                     else
                     {
-                        newType = LandType.CLIFF;
+                        newType = TileType.CLIFF;
                         newOrientation = Orientation.BOTTOM;
                     }
                     break;
 
                 case TileType.FOREST:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 35) ? LandType.TREE
-                        : (random.Next(0, 100) < 70) ? LandType.PINE
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 35) ? TileType.TREE
+                        : (random.Next(0, 100) < 70) ? TileType.PINE
                         : newType;
                     break;
 
                 case TileType.MOUNTAIN:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 70) ? LandType.ROCK : newType;
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 70) ? TileType.ROCK : newType;
                     break;
             }
 
-            land[x, 0].LandType = newType;
+            land[x, 0].Icon = newType;
             land[x, 0].Orientation = newOrientation;
         }
 
         for (int y = 0; y < LAND_HEIGHT; y++)
         {
-            LandType newType = land[0, y].LandType;
+            TileType newType = land[0, y].Icon;
             Orientation newOrientation = land[0, y].Orientation;
 
-            switch (leftTile.TileType)
+            switch (leftTile.GetGlobalType())
             {
                 case TileType.WATER:
-                    if (y == 0 && bottomTile.TileType == TileType.WATER)
+                    if (y == 0 && bottomTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.BOTTOM_LEFT;
                     }
-                    else if (y == LAND_HEIGHT - 1 && topTile.TileType == TileType.WATER)
+                    else if (y == LAND_HEIGHT - 1 && topTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.TOP_LEFT;
                     }
                     else
                     {
-                        newType = LandType.CLIFF;
+                        newType = TileType.CLIFF;
                         newOrientation = Orientation.LEFT;
                     }
                     break;
 
                 case TileType.FOREST:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 35) ? LandType.TREE
-                        : (random.Next(0, 100) < 70) ? LandType.PINE
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 35) ? TileType.TREE
+                        : (random.Next(0, 100) < 70) ? TileType.PINE
                         : newType;
                     break;
 
                 case TileType.MOUNTAIN:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 70) ? LandType.ROCK : newType;
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 70) ? TileType.ROCK : newType;
                     break;
             }
 
-            land[0, y].LandType = newType;
+            land[0, y].Icon = newType;
             land[0, y].Orientation = newOrientation;
 
-            newType = land[LAND_WIDTH - 1, y].LandType;
+            newType = land[LAND_WIDTH - 1, y].Icon;
             newOrientation = land[LAND_WIDTH - 1, y].Orientation;
 
-            switch (rightTile.TileType)
+            switch (rightTile.GetGlobalType())
             {
                 case TileType.WATER:
-                    if (y == 0 && bottomTile.TileType == TileType.WATER)
+                    if (y == 0 && bottomTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.BOTTOM_RIGHT;
                     }
-                    else if (y == LAND_HEIGHT - 1 && topTile.TileType == TileType.WATER)
+                    else if (y == LAND_HEIGHT - 1 && topTile.Type == TileType.WATER)
                     {
-                        newType = LandType.CLIFF_CORNER;
+                        newType = TileType.CLIFF_CORNER;
                         newOrientation = Orientation.TOP_RIGHT;
                     }
                     else
                     {
-                        newType = LandType.CLIFF;
+                        newType = TileType.CLIFF;
                         newOrientation = Orientation.RIGHT;
                     }
                     break;
 
                 case TileType.FOREST:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 35) ? LandType.TREE
-                        : (random.Next(0, 100) < 70) ? LandType.PINE
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 35) ? TileType.TREE
+                        : (random.Next(0, 100) < 70) ? TileType.PINE
                         : newType;
                     break;
 
                 case TileType.MOUNTAIN:
-                    if (newType == LandType.CLIFF) break;
-                    newType = (random.Next(0, 100) < 70) ? LandType.ROCK : newType;
+                    if (newType == TileType.CLIFF) break;
+                    newType = (random.Next(0, 100) < 70) ? TileType.ROCK : newType;
                     break;
             }
 
-            land[LAND_WIDTH - 1, y].LandType = newType;
+            land[LAND_WIDTH - 1, y].Icon = newType;
             land[LAND_WIDTH - 1, y].Orientation = newOrientation;
         }
     }
@@ -378,7 +380,7 @@ public class Land
 
     private Orientation GetMountainFaceOrientation(int x, int y, Border border)
     {
-        if (land[x, y].LandType == LandType.MOUNTAIN_TOP) return Orientation.DEFAULT;
+        if (land[x, y].Icon == TileType.MOUNTAIN_TOP) return Orientation.DEFAULT;
 
         bool borderOnTop = y + 1 <= border.Top && border.IsPositionOnBorder(x, y + 1);
         bool borderOnBottom = y - 1 >= border.Bottom && border.IsPositionOnBorder(x, y - 1);
@@ -475,6 +477,14 @@ public class Land
         }
     }
 
+    public struct Surrounding
+    {
+        public Tile Top { get; set; }
+        public Tile Bottom { get; set; }
+        public Tile Left { get; set; }
+        public Tile Right { get; set; }
+    }
+
     public struct Border
     {
         public float Top { get; set; }
@@ -517,22 +527,6 @@ public class Land
         {
             return "Top: " + Top + " Bottom: " + Bottom + " Left: " + Left + " Right: " + Right;
         }
-    }
-
-    public enum LandType
-    {
-        DEFAULT,
-        TREE,
-        PINE,
-        ROCK,
-        SAND,
-        GRASS,
-        WATER,
-        CLIFF,
-        CLIFF_CORNER,
-        MOUNTAIN_FACE,
-        MOUNTAIN_CORNER,
-        MOUNTAIN_TOP,
     }
 }
 

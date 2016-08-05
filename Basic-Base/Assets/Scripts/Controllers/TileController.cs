@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using Orientation = Map.Orientation;
-using TileType = Map.TileType;
-using LandType = Land.LandType;
+using TileType = Tile.TileType;
 
 public class TileController : MonoBehaviour
 {
@@ -19,7 +18,7 @@ public class TileController : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (_tile.TileType != TileType.DEFAULT) _controller.LoadTile(_tile);
+        if (_tile.Type != TileType.DEFAULT) _controller.LoadTile(_tile);
     }
     
     void OnMouseEnter()
@@ -39,15 +38,7 @@ public class TileController : MonoBehaviour
     {
         _tile = tile;
 
-        bool isTileWater = (Config.ViewMode == View.ViewMode.MAP)
-            ? tile.TileType == TileType.WATER
-            : tile.LandType == LandType.WATER;
-
-        string groudSprite = (Config.ViewMode == View.ViewMode.MAP)
-            ? TileType.PLAIN.ToString().ToLower()
-            : LandType.GRASS.ToString().ToLower();
-
-        string sprite = isTileWater ? TileType.WATER.ToString().ToLower() : groudSprite;
+        string sprite = tile.Type.ToString().ToLower();
 
         GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + sprite);
 
@@ -56,19 +47,11 @@ public class TileController : MonoBehaviour
 
     private void SetIcon(Tile tile)
     {
-        _tile = tile;
-
-        bool isEmptyLandOrWater = (Config.ViewMode == View.ViewMode.MAP) 
-            ? tile.TileType == TileType.PLAIN || tile.TileType == TileType.WATER
-            : tile.LandType == LandType.GRASS || tile.LandType == LandType.WATER;
-
-        string iconPath = isEmptyLandOrWater ? "" : (Config.ViewMode == View.ViewMode.MAP) 
-            ? Config.SpritesPath + tile.TileType.ToString().ToLower() 
-            : Config.SpritesPath + tile.LandType.ToString().ToLower();
+        string iconPath = tile.Icon == TileType.DEFAULT ? "" : tile.Icon.ToString().ToLower();
 
         _icon = transform.GetChild(0).gameObject;
         _icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
-        _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
+        _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + iconPath);
         _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
     }
 
