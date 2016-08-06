@@ -23,6 +23,7 @@ public class MapController : MonoBehaviour
     
     private ViewController _viewController;
     private CameraController _cameraController;
+    private PersonController _personController;
 
     private Map _map;
 
@@ -33,12 +34,27 @@ public class MapController : MonoBehaviour
         SetViewManager();
     }
 
+    void OnMouseDown()
+    {
+        Debug.Log("Map down");
+    }
+
     void SetViewManager()
     {
         ViewController controller = gameObject.AddComponent<ViewController>();
         controller.ViewField = new View(_map);
 
         _viewController = controller;
+    }
+
+    public Map GetMap()
+    {
+        return _map;
+    }
+
+    public void SelectPerson(PersonController person)
+    {
+        _personController = person;
     }
 
     private void LoadMap()
@@ -60,16 +76,11 @@ public class MapController : MonoBehaviour
         _map = new Map();
     }
 
-    void SetCamera()
+    private void SetCamera()
     {
         Vector3 cameraPosition = new Vector3(Config.ViewWidth / 2 + 0.5f, Config.ViewHeight / 2 + 0.5f, -5);
 
         _cameraController = Camera.main.transform.GetComponent<CameraController>();
         Camera.main.transform.position = cameraPosition;
-    }
-
-    public Map GetMap()
-    {
-        return _map;
     }
 }

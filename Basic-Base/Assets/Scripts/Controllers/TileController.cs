@@ -50,7 +50,7 @@ public class TileController : MonoBehaviour
         string iconPath = tile.Icon == TileType.DEFAULT ? "" : tile.Icon.ToString().ToLower();
 
         _icon = transform.GetChild(0).gameObject;
-        _icon.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - 1);
+        _icon.transform.position = new Vector3(transform.position.x, transform.position.y, _icon.transform.parent.position.z - 1);
         _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + iconPath);
         _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
     }

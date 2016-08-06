@@ -75,7 +75,7 @@ public class ViewController : MonoBehaviour
         {
             originChanged = true;
             if (relativeOrigin.x + jumpSizeX > originXLimit)
-                jumpSizeX = Mathf.Round((float)Config.MapWidth / 2) - relativeOrigin.x;
+                jumpSizeX = originXLimit - relativeOrigin.x;
 
             cameraMove.x = -jumpSizeX;
             relativeOrigin.x += jumpSizeX;
@@ -102,7 +102,6 @@ public class ViewController : MonoBehaviour
         }
 
         if (!originChanged) return;
-        Debug.Log(originXLimit + " " + originYLimit);
         mainCamera.transform.position += cameraMove;
 
         ViewField.SetOrigin(relativeOrigin);
@@ -115,19 +114,29 @@ public class ViewController : MonoBehaviour
         selector.transform.parent = transform;
         selector.transform.position = new Vector3(0, 0, 1);
         _selectorRenderer = selector.AddComponent<SpriteRenderer>();
-        _selectorRenderer.sprite = Resources.Load<Sprite>("Sprites/selection");
+        _selectorRenderer.sprite = Resources.Load<Sprite>(Config.SpritesPath + "selection");
         _selectorRenderer.enabled = false;
     }
 
     public void LoadTile(Tile tile)
     {
+        if (Config.ViewMode == View.ViewMode.LAND) return;
+        _selectorRenderer.enabled = false;
+
         Config.ViewMode = View.ViewMode.LAND;
-        ViewField.SetOrigin(new Vector2((int)tile.Position.x, (int)tile.Position.y) * 10);
+        ViewField.SetOrigin(new Vector2((int)tile.Position.x -2.5f, (int)tile.Position.y - 1.25f) * 10);
+        Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
+
+        GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
+        person.transform.position = new Vector3(Config.ViewWidth/2 + 5, Config.ViewHeight/2 + 5, 2.5f);
+        person.transform.parent = transform;
+
         UpdateView();
     }
 
     public void SelectTile(int xPosition, int yPosition)
     {
+        if (Config.ViewMode == View.ViewMode.LAND) return;
         Vector3 position = new Vector3(xPosition + 0.5f, yPosition + 0.5f, 1);
 
         _selectorRenderer.enabled = true;
