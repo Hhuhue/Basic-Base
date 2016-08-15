@@ -5,9 +5,10 @@ using System.Text;
 using UnityEngine;
 
 
-public class Person
+public class Entity
 {
     public Vector2 Position { get; set; }
 
+    public bool Selected { get; set; }
 
 }

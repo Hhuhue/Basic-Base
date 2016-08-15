@@ -20,6 +20,8 @@ public class MapController : MonoBehaviour
 
     [Range(0, 100)]
     public int CoastPercentage = 20;
+
+    public GameObject EntityContainer;
     
     private ViewController _viewController;
     private CameraController _cameraController;
@@ -34,15 +36,11 @@ public class MapController : MonoBehaviour
         SetViewManager();
     }
 
-    void OnMouseDown()
-    {
-        Debug.Log("Map down");
-    }
-
     void SetViewManager()
     {
         ViewController controller = gameObject.AddComponent<ViewController>();
         controller.ViewField = new View(_map);
+        controller.EntityContainer = EntityContainer;
 
         _viewController = controller;
     }
@@ -63,8 +61,8 @@ public class MapController : MonoBehaviour
 
         Config.MapHeight = Height;
         Config.MapWidth = Width;
-        Config.ViewHeight = Height / 2;
-        Config.ViewWidth = Width / 2;
+        Config.ViewHeight = 25;
+        Config.ViewWidth = 50;
         Config.FillRatio = FillPercentage;
         Config.ForestRatio = ForestPercentage;
         Config.MountainRatio = MountainPercentage;

@@ -3,6 +3,7 @@
 public class ViewController : MonoBehaviour
 {
     public View ViewField { get; set; }
+    public GameObject EntityContainer { get; set; }
 
     private GameObject[,] _children;
     private Map _map;
@@ -56,8 +57,8 @@ public class ViewController : MonoBehaviour
         Vector2 relativeOrigin = ViewField.Origin;
         Vector3 cameraMove = Vector3.zero;
 
-        float originXLimit = Config.MapWidth * multiplier - Mathf.Round((float)Config.MapWidth / 2) * modifier;
-        float originYLimit = Config.MapHeight * multiplier - Mathf.Round((float)Config.MapHeight / 2) * modifier;
+        float originXLimit = Config.MapWidth * multiplier - Config.ViewWidth * modifier;
+        float originYLimit = Config.MapHeight * multiplier - Config.ViewHeight * modifier;
 
         CameraEndState endState = GetCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
 
@@ -124,12 +125,12 @@ public class ViewController : MonoBehaviour
         _selectorRenderer.enabled = false;
 
         Config.ViewMode = View.ViewMode.LAND;
-        ViewField.SetOrigin(new Vector2((int)tile.Position.x -2.5f, (int)tile.Position.y - 1.25f) * 10);
+        ViewField.SetOrigin(new Vector2((int)tile.Position.x - 2.5f, (int)tile.Position.y - 1.25f) * 10);
         Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
 
         GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
-        person.transform.position = new Vector3(Config.ViewWidth/2 + 5, Config.ViewHeight/2 + 5, 2.5f);
-        person.transform.parent = transform;
+        person.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, 2.5f);
+        person.transform.parent = EntityContainer.transform;
 
         UpdateView();
     }

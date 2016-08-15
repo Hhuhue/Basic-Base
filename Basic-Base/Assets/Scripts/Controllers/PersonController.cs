@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class PersonController : MonoBehaviour {
-    
-	void Start () {
-	
-	}
-	
-	void Update ()
+public class PersonController : MonoBehaviour
+{
+    public Entity Person { get; set; } 
+
+    void Start()
+    {
+        Person = new Entity();
+    }
+
+    void Update()
     {
         Vector3 move = Vector3.zero;
 
@@ -18,11 +21,16 @@ public class PersonController : MonoBehaviour {
         if (Input.GetKey(KeyCode.DownArrow)) move.y = -speed;
         if (Input.GetKey(KeyCode.UpArrow)) move.y = speed;
 
-	    transform.position += move * Time.deltaTime;
+        transform.position += move * Time.deltaTime;
     }
 
-    void OnMouseDown()
+    public void SetSelected(bool state)
     {
-        Debug.Log("Person down");
+        Person.Selected = state;
+        string iconPath = !state ? "" : Config.SpritesPath + "circle";
+
+        transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
     }
+
+
 }
