@@ -28,13 +28,13 @@ public static class RectangleDrawer
     public static void DrawScreenRectBorder(Rect rect, float thickness, Color color)
     {
         // Top
-        RectangleDrawer.DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);
+        DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);
         // Left
-        RectangleDrawer.DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);
+        DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);
         // Right
-        RectangleDrawer.DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);
+        DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);
         // Bottom
-        RectangleDrawer.DrawScreenRect(new Rect(rect.xMin, rect.yMax - thickness, rect.width, thickness), color);
+        DrawScreenRect(new Rect(rect.xMin, rect.yMax - thickness, rect.width, thickness), color);
     }
 
     public static Rect GetScreenRect(Vector3 screenPosition1, Vector3 screenPosition2)
@@ -51,14 +51,14 @@ public static class RectangleDrawer
 
     public static Bounds GetViewportBounds(Camera camera, Vector3 screenPosition1, Vector3 screenPosition2)
     {
-        var v1 = Camera.main.ScreenToViewportPoint(screenPosition1);
-        var v2 = Camera.main.ScreenToViewportPoint(screenPosition2);
-        var min = Vector3.Min(v1, v2);
-        var max = Vector3.Max(v1, v2);
+        Vector3 v1 = Camera.main.ScreenToViewportPoint(screenPosition1);
+        Vector3 v2 = Camera.main.ScreenToViewportPoint(screenPosition2);
+        Vector3 min = Vector3.Min(v1, v2);
+        Vector3 max = Vector3.Max(v1, v2);
         min.z = camera.nearClipPlane;
         max.z = camera.farClipPlane;
 
-        var bounds = new Bounds();
+        Bounds bounds = new Bounds();
         bounds.SetMinMax(min, max);
         return bounds;
     }

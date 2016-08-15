@@ -3,7 +3,10 @@ using System.Collections;
 
 public class PersonController : MonoBehaviour
 {
-    public Entity Person { get; set; } 
+    public Entity Person { get; set; }
+
+    private Vector2 _destination;
+    private Vector2 _target;
 
     void Start()
     {
@@ -12,16 +15,10 @@ public class PersonController : MonoBehaviour
 
     void Update()
     {
-        Vector3 move = Vector3.zero;
-
-        float speed = 1;
-
-        if (Input.GetKey(KeyCode.LeftArrow)) move.x = -speed;
-        if (Input.GetKey(KeyCode.RightArrow)) move.x = speed;
-        if (Input.GetKey(KeyCode.DownArrow)) move.y = -speed;
-        if (Input.GetKey(KeyCode.UpArrow)) move.y = speed;
-
-        transform.position += move * Time.deltaTime;
+        if (_destination != _target)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, _target, Time.deltaTime * 2);
+        }
     }
 
     public void SetSelected(bool state)
@@ -32,5 +29,8 @@ public class PersonController : MonoBehaviour
         transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
     }
 
-
+    public void GoToPosition(Vector2 position)
+    {
+        _target = position;
+    }
 }

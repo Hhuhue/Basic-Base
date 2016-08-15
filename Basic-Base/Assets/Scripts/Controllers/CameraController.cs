@@ -39,7 +39,7 @@ public class CameraController : MonoBehaviour
         else if (currentPosition.y - currentSize + move.y < 0)
             move.y = 0 - currentPosition.y + currentSize;
 
-        _thisCamera.transform.position += move;
+        _thisCamera.transform.Translate(move);
     }
 
     private void ManageZoom()

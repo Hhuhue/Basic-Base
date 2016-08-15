@@ -1,10 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class SelectionController : MonoBehaviour
 {
-    private bool _isSelecting = false;
+    private bool _isSelecting;
     private Vector3 _mousePosition1;
+
+    void Start()
+    {
+    }
 
     void Update()
     {
@@ -16,6 +21,18 @@ public class SelectionController : MonoBehaviour
         }
         // If we let go of the left mouse button, end selection
         if (Input.GetMouseButtonUp(0)) _isSelecting = false;
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            List<PersonController> selection = GetSelection();
+            Vector3 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            foreach (PersonController controller in selection)
+            {
+                controller.GoToPosition(clickPosition);
+                controller.SetSelected(false);
+            }
+        }
     }
 
     void OnGUI()
@@ -35,6 +52,20 @@ public class SelectionController : MonoBehaviour
         }
     }
 
+    private List<PersonController> GetSelection()
+    {
+        List<PersonController> selection = new List<PersonController>();
+
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform entity = transform.GetChild(i);
+            PersonController controller = entity.GetComponent<PersonController>();
+            if(controller.Person.Selected) selection.Add(controller);
+        }
+
+        return selection;
+    } 
+    
     private bool IsWithinSelectionBounds(Transform entity)
     {
         if (!_isSelecting) return false;
