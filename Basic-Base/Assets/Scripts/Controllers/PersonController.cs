@@ -4,8 +4,7 @@ using System.Collections;
 public class PersonController : MonoBehaviour
 {
     public Entity Person { get; set; }
-
-    private Vector2 _destination;
+    
     private Vector2 _target;
 
     void Start()
@@ -15,9 +14,10 @@ public class PersonController : MonoBehaviour
 
     void Update()
     {
-        if (_destination != _target)
+        if (Person.Position != _target)
         {
             transform.position = Vector3.MoveTowards(transform.position, _target, Time.deltaTime * 2);
+            Person.Position = transform.position;
         }
     }
 

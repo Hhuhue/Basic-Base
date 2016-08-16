@@ -48,6 +48,11 @@ public class Map
                orientation == Orientation.TOP_RIGHT;
     }
 
+    public void SaveMap()
+    {
+        SaveManager.Save(map, Config.MapHeight, Config.MapWidth);
+    }
+
     private void RandomFillMap()
     {
         for (int x = 0; x < Config.MapWidth; x++)

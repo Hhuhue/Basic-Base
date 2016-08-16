@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using TileType = Tile.TileType;
 
 public class MapController : MonoBehaviour
 {
@@ -34,6 +33,14 @@ public class MapController : MonoBehaviour
         LoadMap();
         SetCamera();
         SetViewManager();
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            _map.SaveMap();
+        }
     }
 
     void SetViewManager()
