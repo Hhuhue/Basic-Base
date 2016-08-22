@@ -2,6 +2,7 @@
 
 public class MapController : MonoBehaviour
 {
+    public bool UseMenuConfig;
     public int Width;
     public int Height;
     public int SmoothCount;
@@ -21,7 +22,7 @@ public class MapController : MonoBehaviour
     public int CoastPercentage = 20;
 
     public GameObject EntityContainer;
-    
+
     private ViewController _viewController;
     private CameraController _cameraController;
     private PersonController _personController;
@@ -64,17 +65,20 @@ public class MapController : MonoBehaviour
 
     private void LoadMap()
     {
-        if (UseRandomSeed) Seed = System.DateTime.UtcNow.ToString();
+        if (!UseMenuConfig)
+        {
+            if (UseRandomSeed) Seed = System.DateTime.UtcNow.ToString();
 
-        Config.MapHeight = Height;
-        Config.MapWidth = Width;
-        Config.FillRatio = FillPercentage;
-        Config.ForestRatio = ForestPercentage;
-        Config.MountainRatio = MountainPercentage;
-        Config.CoastRatio = CoastPercentage;
-        Config.Seed = new System.Random(Seed.GetHashCode());
-        Config.SmoothCount = SmoothCount;
-        Config.SpritesPath = "Sprites/";
+            Config.MapHeight = Height;
+            Config.MapWidth = Width;
+            Config.FillRatio = FillPercentage;
+            Config.ForestRatio = ForestPercentage;
+            Config.MountainRatio = MountainPercentage;
+            Config.CoastRatio = CoastPercentage;
+            Config.Seed = new System.Random(Seed.GetHashCode());
+            Config.SmoothCount = SmoothCount;
+            Config.SpritesPath = "Sprites/";
+        }
 
         _map = new Map();
     }

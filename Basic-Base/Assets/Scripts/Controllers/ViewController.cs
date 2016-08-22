@@ -95,9 +95,7 @@ public class ViewController : MonoBehaviour
 
             cameraMove.y = -jumpSizeY;
             relativeOrigin.y += jumpSizeY;
-        }
-
-        Debug.Log(relativeOrigin.ToString());
+        } 
 
         if (!originChanged) return;
         mainCamera.transform.position += cameraMove;
