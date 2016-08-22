@@ -68,8 +68,6 @@ public class MapController : MonoBehaviour
 
         Config.MapHeight = Height;
         Config.MapWidth = Width;
-        Config.ViewHeight = 25;
-        Config.ViewWidth = 50;
         Config.FillRatio = FillPercentage;
         Config.ForestRatio = ForestPercentage;
         Config.MountainRatio = MountainPercentage;

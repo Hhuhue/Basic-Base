@@ -26,10 +26,6 @@ public class ViewController : MonoBehaviour
                 tileObject.transform.parent = transform;
                 tileObject.transform.position = new Vector3(x + 0.5f, y + 0.5f, 3);
                 tileObject.transform.localScale = Vector3.one;
-
-                GameObject icon = tileObject.transform.GetChild(0).gameObject;
-                icon.transform.parent = tileObject.transform;
-
                 tileObject.GetComponent<TileController>().SetTile(tile);
                 tileObject.GetComponent<TileController>().SetPosition(x, y);
 
@@ -51,14 +47,13 @@ public class ViewController : MonoBehaviour
         if (!borderState.AnyBorderReached) return;
 
         bool originChanged = false;
-        int multiplier = (Config.ViewMode == View.ViewMode.MAP) ? 0 : 10;
-        int modifier = (multiplier == 0) ? -1 : 1;
+        int multiplier = (Config.ViewMode == View.ViewMode.MAP) ? 1 : 10;
 
         Vector2 relativeOrigin = ViewField.Origin;
         Vector3 cameraMove = Vector3.zero;
 
-        float originXLimit = Config.MapWidth * multiplier - Config.ViewWidth * modifier;
-        float originYLimit = Config.MapHeight * multiplier - Config.ViewHeight * modifier;
+        float originXLimit = Config.MapWidth * multiplier - Config.ViewWidth;
+        float originYLimit = Config.MapHeight * multiplier - Config.ViewHeight;
 
         CameraEndState endState = GetCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
 
@@ -101,6 +96,8 @@ public class ViewController : MonoBehaviour
             cameraMove.y = -jumpSizeY;
             relativeOrigin.y += jumpSizeY;
         }
+
+        Debug.Log(relativeOrigin.ToString());
 
         if (!originChanged) return;
         mainCamera.transform.position += cameraMove;

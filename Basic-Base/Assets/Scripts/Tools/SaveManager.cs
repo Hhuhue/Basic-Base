@@ -29,8 +29,11 @@ public static class SaveManager
     public static Tile[,] Load()
     {
         string[] lines = System.IO.File.ReadAllLines(Application.dataPath + "/save.txt");
-        int width = lines[0].Length;
+        int width = lines[0].Split(' ').Length;
         int height = lines.Length;
+
+        Config.MapHeight = height;
+        Config.MapWidth = width;
 
         Tile[,] map = new Tile[width, height];
 

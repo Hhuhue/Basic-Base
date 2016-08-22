@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-public class Config
+public static class Config
 {
     public static Random Seed { get; set; }
 
@@ -11,9 +11,9 @@ public class Config
 
     public static int MapHeight { get; set; }
 
-    public static int ViewWidth { get; set; }
+    public const int ViewWidth = 50;
 
-    public static int ViewHeight { get; set; }
+    public const int ViewHeight = 25;
 
     public static int SmoothCount { get; set; }
 

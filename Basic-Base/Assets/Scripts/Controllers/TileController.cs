@@ -18,6 +18,8 @@ public class TileController : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (_controller == null) return;
+
         if (_tile.Type != TileType.DEFAULT) _controller.LoadTile(_tile);
     }
     
