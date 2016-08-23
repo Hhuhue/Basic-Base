@@ -5,20 +5,39 @@ public class PersonController : MonoBehaviour
 {
     public Entity Person { get; set; }
     
-    private Vector2 _target;
+    private Vector3 _target;
 
     void Start()
     {
-        Person = new Entity();
+        Person = new Entity()
+        {
+            Position = transform.position,
+            Selected = false
+        };
+
+        _target = transform.position;
     }
 
     void Update()
     {
         if (Person.Position != _target)
         {
-            transform.position = Vector3.MoveTowards(transform.position, _target, Time.deltaTime * 2);
-            Person.Position = transform.position;
+            Person.Position = Vector3.MoveTowards(transform.position, _target, Time.deltaTime * 2);
+            transform.position = Person.Position;
         }
+    }
+
+    public void SetPosition(Vector3 position)
+    {
+        Person.Position = position;
+    }
+
+    public void Translate(Vector2 move)
+    {
+        Person.Position += new Vector3(move.x, move.y, 0);
+        _target += new Vector3(move.x, move.y, 0); ;
+
+        transform.position = Person.Position;
     }
 
     public void SetSelected(bool state)

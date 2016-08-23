@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class ViewController : MonoBehaviour
 {
@@ -99,19 +100,9 @@ public class ViewController : MonoBehaviour
 
         if (!originChanged) return;
         mainCamera.transform.position += cameraMove;
-
         ViewField.SetOrigin(relativeOrigin);
         UpdateView();
-    }
-
-    void SetSelector()
-    {
-        GameObject selector = new GameObject("selector");
-        selector.transform.parent = transform;
-        selector.transform.position = new Vector3(0, 0, 1);
-        _selectorRenderer = selector.AddComponent<SpriteRenderer>();
-        _selectorRenderer.sprite = Resources.Load<Sprite>(Config.SpritesPath + "selection");
-        _selectorRenderer.enabled = false;
+        UpdateEntities(cameraMove);
     }
 
     public void LoadTile(Tile tile)
@@ -123,8 +114,9 @@ public class ViewController : MonoBehaviour
         ViewField.SetOrigin(new Vector2((int)tile.Position.x - 2.5f, (int)tile.Position.y - 1.25f) * 10);
         Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
 
+        Vector3 position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, 2.5f);
         GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
-        person.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, 2.5f);
+        person.transform.position = position;
         person.transform.parent = EntityContainer.transform;
 
         UpdateView();
@@ -139,6 +131,16 @@ public class ViewController : MonoBehaviour
         _selectorRenderer.transform.position = position;
     }
 
+    private void SetSelector()
+    {
+        GameObject selector = new GameObject("selector");
+        selector.transform.parent = transform;
+        selector.transform.position = new Vector3(0, 0, 1);
+        _selectorRenderer = selector.AddComponent<SpriteRenderer>();
+        _selectorRenderer.sprite = Resources.Load<Sprite>(Config.SpritesPath + "selection");
+        _selectorRenderer.enabled = false;
+    }
+
     private void UpdateView()
     {
         Tile[,] view = ViewField.GetView();
@@ -150,6 +152,15 @@ public class ViewController : MonoBehaviour
                 TileController tile = _children[x, y].GetComponent<TileController>();
                 tile.SetTile(view[x, y]);
             }
+        }
+    }
+
+    private void UpdateEntities(Vector2 move)
+    {
+        for (int i = 0; i < EntityContainer.transform.childCount; i++)
+        {
+            Transform entity = EntityContainer.transform.GetChild(i);
+            entity.GetComponent<PersonController>().Translate(move);
         }
     }
 

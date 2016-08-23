@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class Entity
 {
-    public Vector2 Position { get; set; }
+    public Vector3 Position { get; set; }
 
     public bool Selected { get; set; }
 

@@ -68,15 +68,13 @@ public class HomeController : MonoBehaviour
 
     public void CancelOption()
     {
-        HeightInput.GetComponent<Text>().text = Config.MapHeight.ToString();
-        WidthInput.GetComponent<Text>().text = Config.MapWidth.ToString();
+        HeightInput.GetComponent<InputField>().text = Config.MapHeight.ToString();
+        WidthInput.GetComponent<InputField>().text = Config.MapWidth.ToString();
         LandInput.GetComponent<Slider>().value = (float)(Config.FillRatio - 40) / 5;
         ForestInput.GetComponent<Slider>().value = (float)(Config.ForestRatio - 10) / 15;
         MountainInput.GetComponent<Slider>().value = (float)(Config.MountainRatio - 8) / 6;
         CoastInput.GetComponent<Slider>().value = (float)(Config.CoastRatio - 15) / 10;
         SeedInput.GetComponent<Text>().text = _previousSeed;
-
-        Debug.Log(HeightInput.GetComponent<Text>().text + " " + WidthInput.GetComponent<Text>().text);
 
         HomeGroup.SetActive(true);
         OptionsGroup.SetActive(false);
@@ -84,13 +82,17 @@ public class HomeController : MonoBehaviour
 
     public void SaveOption()
     {
-        Config.MapHeight = int.Parse(HeightInput.GetComponent<Text>().text);
-        Config.MapWidth = int.Parse(WidthInput.GetComponent<Text>().text);
+        string seed = UseRandomInput.GetComponent<Toggle>().isOn 
+            ? DateTime.UtcNow.ToString()
+            : SeedInput.GetComponent<Text>().text;
+
+        Config.MapHeight = int.Parse(HeightInput.GetComponent<InputField>().text);
+        Config.MapWidth = int.Parse(WidthInput.GetComponent<InputField>().text);
         Config.FillRatio = 40 + int.Parse(LandInput.GetComponent<Slider>().value.ToString()) * 5;
         Config.ForestRatio = 10 + int.Parse(ForestInput.GetComponent<Slider>().value.ToString()) * 15;
         Config.MountainRatio = 8 + int.Parse(MountainInput.GetComponent<Slider>().value.ToString()) * 6;
         Config.CoastRatio = 15 + int.Parse(CoastInput.GetComponent<Slider>().value.ToString()) * 10;
-        Config.Seed = new System.Random(SeedInput.GetComponent<Text>().text.GetHashCode());
+        Config.Seed = new System.Random(seed.GetHashCode());
 
         HomeGroup.SetActive(true);
         OptionsGroup.SetActive(false);
