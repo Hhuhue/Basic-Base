@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ViewController : MonoBehaviour
 {
     public View ViewField { get; set; }
     public GameObject EntityContainer { get; set; }
+    public GameObject MapButton { get; set; }
 
     private GameObject[,] _children;
     private Map _map;
@@ -14,6 +16,7 @@ public class ViewController : MonoBehaviour
     {
         SetSelector();
 
+        MapButton.GetComponent<Button>().onClick.AddListener(LoadMap);
         _children = new GameObject[Config.ViewWidth, Config.ViewHeight];
         _map = GetComponent<MapController>().GetMap();
 
@@ -119,6 +122,8 @@ public class ViewController : MonoBehaviour
         person.transform.position = position;
         person.transform.parent = EntityContainer.transform;
 
+        EntityContainer.SetActive(true);
+
         UpdateView();
     }
 
@@ -129,6 +134,20 @@ public class ViewController : MonoBehaviour
 
         _selectorRenderer.enabled = true;
         _selectorRenderer.transform.position = position;
+    }
+
+    public void LoadMap()
+    {
+        if (Config.ViewMode == View.ViewMode.MAP) return;
+        _selectorRenderer.enabled = true;
+
+        Config.ViewMode = View.ViewMode.MAP;
+        ViewField.SetOrigin(ViewField.Origin / 10);
+        Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
+        
+        EntityContainer.SetActive(false);
+
+        UpdateView();
     }
 
     private void SetSelector()

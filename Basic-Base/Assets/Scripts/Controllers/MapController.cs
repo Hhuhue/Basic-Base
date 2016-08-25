@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class MapController : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class MapController : MonoBehaviour
     public int CoastPercentage = 20;
 
     public GameObject EntityContainer;
+    public GameObject MapButton;
 
     private ViewController _viewController;
     private CameraController _cameraController;
@@ -49,6 +51,7 @@ public class MapController : MonoBehaviour
         ViewController controller = gameObject.AddComponent<ViewController>();
         controller.ViewField = new View(_map);
         controller.EntityContainer = EntityContainer;
+        controller.MapButton = MapButton;
 
         _viewController = controller;
     }
