@@ -141,8 +141,22 @@ public class ViewController : MonoBehaviour
         if (Config.ViewMode == View.ViewMode.MAP) return;
         _selectorRenderer.enabled = true;
 
+        int maxViewXPosition = Config.MapWidth - Config.ViewWidth;
+        int maxViewYPosition = Config.MapHeight - Config.ViewHeight;
+
         Config.ViewMode = View.ViewMode.MAP;
-        ViewField.SetOrigin(ViewField.Origin / 10);
+        Vector2 viewCenter = new Vector2(Config.ViewWidth / 2, Config.ViewHeight / 2);
+
+        Vector2 focusedLandPiecePosition = ViewField.Origin + viewCenter;
+        Vector2 scaledPosition = focusedLandPiecePosition / 10;
+        Vector2 scaledOrigin = scaledPosition - viewCenter;        
+
+        scaledOrigin.x = (scaledOrigin.x > maxViewXPosition) ? maxViewXPosition : (scaledOrigin.x < 0) ? 0 : scaledOrigin.x; 
+        scaledOrigin.y = (scaledOrigin.y > maxViewYPosition) ? maxViewYPosition : (scaledOrigin.y < 0) ? 0 : scaledOrigin.y;
+
+        Debug.Log("Focus: " + focusedLandPiecePosition.ToString() + ", Scaled focus: " + scaledPosition.ToString() + ", Scaled origin: " + scaledOrigin.ToString());
+
+        ViewField.SetOrigin(scaledOrigin);
         Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
         
         EntityContainer.SetActive(false);

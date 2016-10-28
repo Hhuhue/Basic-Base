@@ -173,7 +173,8 @@ public class Land
         {
             Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
             Type = type,
-            Icon = icon
+            Icon = icon,
+            IsCrossable = type == TileType.GRASS
         };
     }
 

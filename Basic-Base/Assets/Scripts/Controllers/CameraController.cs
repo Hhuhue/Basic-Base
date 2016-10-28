@@ -1,8 +1,4 @@
-using System;
 using UnityEngine;
-using System.Collections;
-using Border = Land.Border;
-using ViewMode = View.ViewMode;
 
 public class CameraController : MonoBehaviour
 {
@@ -39,7 +35,7 @@ public class CameraController : MonoBehaviour
         else if (currentPosition.y - currentSize + move.y < 0)
             move.y = 0 - currentPosition.y + currentSize;
 
-        _thisCamera.transform.Translate(move);
+        _thisCamera.transform.position += move;
     }
 
     private void ManageZoom()

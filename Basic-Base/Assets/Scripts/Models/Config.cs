@@ -5,15 +5,15 @@ using System.Text;
 
 public static class Config
 {
+    public const int ViewWidth = 50;
+
+    public const int ViewHeight = 25;
+    
     public static Random Seed { get; set; }
 
     public static int MapWidth { get; set; }
 
     public static int MapHeight { get; set; }
-
-    public const int ViewWidth = 50;
-
-    public const int ViewHeight = 25;
 
     public static int SmoothCount { get; set; }
 
