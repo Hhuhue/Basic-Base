@@ -50,6 +50,8 @@ public class PersonController : MonoBehaviour
 
     public void GoToPosition(Vector2 position)
     {
+        
+
         _target = position;
     }
 }

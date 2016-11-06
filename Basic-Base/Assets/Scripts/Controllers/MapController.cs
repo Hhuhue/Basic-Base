@@ -84,6 +84,7 @@ public class MapController : MonoBehaviour
         }
 
         _map = new Map();
+        PathFinder.Land = _map;
     }
 
     private void SetCamera()
