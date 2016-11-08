@@ -19,6 +19,11 @@ public class Tile
         return Icon == TileType.DEFAULT ? Type : Icon;
     }
 
+    public override string ToString()
+    {
+        return GetGlobalType() + " at " + Position + ". Orr : " + Orientation;
+    }
+
     public enum TileType
     {
         DEFAULT,

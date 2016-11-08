@@ -9,31 +9,46 @@ public static class PathFinder
 {
     public static Map Land { get; set; }
 
-    public static Vector2[] GetPath(Tile start, Tile destination)
+    public static Vector2[] GetPath(Vector2 start, Vector2 destination)
     {
-        Step initialStep = new Step {Cost = 0, Location = start};
-        SortedSteps candidates = new SortedSteps(destination.Position, initialStep);
+
+        Tile startTile = Land.GetLand((int)start.x / 10, (int)start.y / 10)
+            .GetLandPiece((int)start.x % 10, (int)start.y % 10);
+        Tile destinationTile = Land.GetLand((int)destination.x / 10, (int)destination.y / 10)
+            .GetLandPiece((int)destination.x % 10, (int)destination.y % 10);
+
+        Debug.Log(startTile.ToString());
+        Debug.Log(destinationTile.ToString());
+
+        Step initialStep = new Step() {Cost = 0, Location = startTile};
+        SortedSteps candidates = new SortedSteps(destinationTile.Position, initialStep);
         List<Step> verifiedSteps = new List<Step>();
 
-        while (candidates.Count != 0 && start.Position != destination.Position)
+        while (candidates.Count != 0 && startTile.Position != destinationTile.Position)
         {
             Step currentStep = candidates.Pop();
 
             if (currentStep.Cost == -1) return new Vector2[0];
 
-            if (currentStep.Position == destination.Position) return BuildPath(currentStep, verifiedSteps);
+            if (currentStep.Position == destinationTile.Position) return BuildPath(currentStep, verifiedSteps);
 
-            for (int x = -1; x < 1; x++)
+            for (int x = -1; x <= 1; x++)
             {
-                for (int y = -1; y < 1; y++)
+                for (int y = -1; y <= 1; y++)
                 {
+                    Vector2 landPosition = new Vector2((currentStep.Position.x * 10 + x) / 10, (currentStep.Position.y * 10 + y) / 10);
+                    Vector2 landPiecePosition = new Vector2((currentStep.Position.x * 10 + x) % 10, (currentStep.Position.y * 10 + y) % 10);
+
                     Step nearStep = new Step()
                     {
                         Cost = currentStep.Cost + 1,
-                        //Location = Land.GetLandPiece((int)currentStep.Position.x + x, (int)currentStep.Position.y + y)
+                        Location = Land.GetLand((int)landPosition.x, (int)landPosition.y)
+                            .GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y)
                     };
 
                     if(nearStep.Location.GetGlobalType() != Tile.TileType.GRASS) continue;
+
+                    if (x == 0 && y == 0) continue;
 
                     if (candidates.ContainsAtLessCost(nearStep, new Step[0]) || candidates.ContainsAtLessCost(nearStep, verifiedSteps.ToArray()))
                         continue;
@@ -52,7 +67,7 @@ public static class PathFinder
     {
         List<Step> path = new List<Step>();
 
-        return path.Select(x => x.Position).ToArray();
+        return verfiedSteps.Select(x => x.Position).ToArray();
     }
 
     private struct Step
@@ -79,14 +94,15 @@ public static class PathFinder
             _destination = destination;
             _distances = new float[Config.ViewHeight * Config.ViewWidth];
             _steps = new Step[Config.ViewHeight*Config.ViewWidth];
-
-            _steps[0] = firstStep;
-            _distances[0] = Vector2.Distance(firstStep.Location.Position, _destination);
-
+            
             for (int i = 0; i < _distances.Length; i++)
             {
                 _distances[i] = -1;
+                _steps[i].Cost = -1;
             }
+
+            _steps[0] = firstStep;
+            _distances[0] = Vector2.Distance(firstStep.Location.Position, _destination);
 
             Count = 1;
         }
@@ -97,7 +113,7 @@ public static class PathFinder
 
             for (int i = 0; i < _distances.Length; i++)
             {
-                if (_distances[i] <= stepDistance || _distances[i] != -1) continue;
+                if (_distances[i] <= stepDistance && _distances[i] != -1) continue;
 
                 Step stepTemp = _steps[i];
                 float distanceTemp = _distances[i];
@@ -117,6 +133,8 @@ public static class PathFinder
                     _steps[i] = stepTemp;
                     stepTemp = stepToshift;
                 }
+
+                break;
             }
 
             Count++;
@@ -132,10 +150,10 @@ public static class PathFinder
 
                 if (_distances[i] == -1)
                 {
-                    _steps[i + 1] = new Step();
+                    _steps[i] = new Step() {Cost = -1};
                     break;
                 }
-
+                
                 _steps[i] = _steps[i + 1];
             }
 
@@ -148,7 +166,7 @@ public static class PathFinder
         {
             if (steps.Length == 0) steps = _steps;
 
-            int matchingStepIndex = steps.Select(x => x.Position).ToList().IndexOf(step.Position);
+            int matchingStepIndex = steps.Where(x => x.Cost < -1).Select(x => x.Position).ToList().IndexOf(step.Position);
 
             if (matchingStepIndex == -1) return false;
 

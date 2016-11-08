@@ -54,6 +54,7 @@ public class MapController : MonoBehaviour
         controller.MapButton = MapButton;
 
         _viewController = controller;
+        PersonController.ViewField = controller.ViewField;
     }
 
     public Map GetMap()

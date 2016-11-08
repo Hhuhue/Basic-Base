@@ -1,9 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Linq;
 
 public class PersonController : MonoBehaviour
 {
     public Entity Person { get; set; }
+
+    public static View ViewField { get; set; }
     
     private Vector3 _target;
 
@@ -50,7 +53,12 @@ public class PersonController : MonoBehaviour
 
     public void GoToPosition(Vector2 position)
     {
-        
+        Vector2[] path = PathFinder.GetPath((Vector2)Person.Position + ViewField.Origin, position + ViewField.Origin);
+
+        string pathString = path.Aggregate("[", (current, step) => current + step.ToString() + ", ");
+        pathString += "]";
+
+        Debug.Log(pathString);
 
         _target = position;
     }
