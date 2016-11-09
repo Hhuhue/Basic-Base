@@ -62,17 +62,18 @@ public class PersonController : MonoBehaviour
     {
         Vector2[] path = PathFinder.GetPath((Vector2)Person.Position + ViewField.Origin, position + ViewField.Origin);
 
-        string pathString = path.Aggregate("[", (current, step) => current + step.ToString() + ", ");
-        pathString += "]";
-
         _targets.Clear();
+
+        Debug.Log(ViewField.Origin.ToString());
+
+        _targets.Push(position);
 
         foreach (Vector2 step in path)
         {
-            _targets.Push(step);
-        }
+            _targets.Push(step * 10 - ViewField.Origin + Vector2.one / 2);
+            Debug.Log(_targets.Peek().ToString());
 
-        Debug.Log(pathString);
+        }
 
         _currentTarget = _targets.Pop();
     }

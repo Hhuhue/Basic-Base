@@ -79,25 +79,13 @@ public class SortedStepStack
         return poppedStep;
     }
 
-    public bool ContainsAtLessCost(Step step, Step[] steps = null)
+    public bool Contains(Step step)
     {
-        if (steps != null)
-        {
-            int matchingStepIndex = steps.Where(x => x.Cost > -1).Select(x => x.Position).ToList().IndexOf(step.Position);
-
-            if (matchingStepIndex == -1) return false;
-
-            return steps[matchingStepIndex].Cost < step.Cost;
-        }
-
         Node currentNode = _firstNode;
 
         while (currentNode != null)
         {
-            if (currentNode.Step.Position == step.Position)
-            {
-                return step.Cost > currentNode.Step.Cost;
-            }
+            if (currentNode.Step.Position.ToString() == step.Position.ToString()) return true;
 
             currentNode = currentNode.PreviousNode;
         }

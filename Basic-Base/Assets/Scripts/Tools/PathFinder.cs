@@ -11,14 +11,16 @@ public static class PathFinder
 
     public static Vector2[] GetPath(Vector2 start, Vector2 destination)
     {
+        Tile startTile = Land.GetLand((int)Math.Truncate(start.x / 10), (int)Math.Truncate(start.y / 10))
+            .GetLandPiece((int)Math.Round(start.x % 10), (int)Math.Round(start.y % 10));
+        Tile destinationTile = Land.GetLand((int)Math.Truncate(destination.x / 10), (int)Math.Truncate(destination.y / 10))
+            .GetLandPiece((int)Math.Round(destination.x % 10), (int)Math.Round(destination.y % 10));
 
-        Tile startTile = Land.GetLand((int)start.x / 10, (int)start.y / 10)
-            .GetLandPiece((int)start.x % 10, (int)start.y % 10);
-        Tile destinationTile = Land.GetLand((int)destination.x / 10, (int)destination.y / 10)
-            .GetLandPiece((int)destination.x % 10, (int)destination.y % 10);
-
-        Debug.Log(startTile.ToString());
-        Debug.Log(destinationTile.ToString());
+        if (destinationTile == null)
+        {
+            Debug.Log("Cannot reach");
+            return new[] {start};
+        }
 
         Step initialStep = new Step() {Cost = 0, Location = startTile};
         SortedStepStack candidates = new SortedStepStack(destinationTile.Position, initialStep);
@@ -36,21 +38,23 @@ public static class PathFinder
             {
                 for (int y = -1; y <= 1; y++)
                 {
-                    Vector2 landPosition = new Vector2((currentStep.Position.x * 10 + x) / 10, (currentStep.Position.y * 10 + y) / 10);
+                    Vector2 landPosition = new Vector2(currentStep.Position.x + x / 10, currentStep.Position.y + y / 10);
                     Vector2 landPiecePosition = new Vector2((currentStep.Position.x * 10 + x) % 10, (currentStep.Position.y * 10 + y) % 10);
-
+                    
                     Step nearStep = new Step()
                     {
                         Cost = currentStep.Cost + 1,
-                        Location = Land.GetLand((int)landPosition.x, (int)landPosition.y)
-                            .GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y)
+                        Location = Land.GetLand((int)Math.Truncate(landPosition.x), (int)Math.Truncate(landPosition.y))
+                            .GetLandPiece((int)Math.Round(landPiecePosition.x), (int)Math.Round(landPiecePosition.y))
                     };
 
-                    if(nearStep.Location.GetGlobalType() != Tile.TileType.GRASS) continue;
+                    if(nearStep.Location != null && nearStep.Location.GetGlobalType() != Tile.TileType.GRASS) continue;
 
                     if (x == 0 && y == 0) continue;
 
-                    if (candidates.ContainsAtLessCost(nearStep, new Step[0]) || candidates.ContainsAtLessCost(nearStep, verifiedSteps.ToArray()))
+                    bool isStepVerified = verifiedSteps.Select(stp => stp.Position.ToString()).ToList().IndexOf(nearStep.Position.ToString()) != -1;
+
+                    if (candidates.Contains(nearStep) || isStepVerified)
                         continue;
                     
                     candidates.Push(nearStep);
@@ -69,7 +73,7 @@ public static class PathFinder
 
         verfiedSteps.Add(finalStep);
 
-        return verfiedSteps.Select(x => x.Position).ToArray();
+        return verfiedSteps.OrderByDescending(x => x.Cost).Select(x => x.Position).ToArray();
     }
 }
 
