@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 public class PersonController : MonoBehaviour
@@ -8,7 +9,8 @@ public class PersonController : MonoBehaviour
 
     public static View ViewField { get; set; }
     
-    private Vector3 _target;
+    private Stack<Vector2> _targets;
+    private Vector2 _currentTarget;
 
     void Start()
     {
@@ -18,15 +20,20 @@ public class PersonController : MonoBehaviour
             Selected = false
         };
 
-        _target = transform.position;
+        _targets = new Stack<Vector2>();
+        _currentTarget = transform.position;
     }
 
     void Update()
     {
-        if (Person.Position != _target)
+        if ((Vector2)Person.Position != _currentTarget)
         {
-            Person.Position = Vector3.MoveTowards(transform.position, _target, Time.deltaTime * 2);
+            Person.Position = Vector3.MoveTowards(transform.position, _currentTarget, Time.deltaTime * 2);
             transform.position = Person.Position;
+        }
+        else if (_targets.Count != 0)
+        {
+            _currentTarget = _targets.Pop();
         }
     }
 
@@ -38,7 +45,7 @@ public class PersonController : MonoBehaviour
     public void Translate(Vector2 move)
     {
         Person.Position += new Vector3(move.x, move.y, 0);
-        _target += new Vector3(move.x, move.y, 0); ;
+        _currentTarget += new Vector2(move.x, move.y); ;
 
         transform.position = Person.Position;
     }
@@ -58,8 +65,15 @@ public class PersonController : MonoBehaviour
         string pathString = path.Aggregate("[", (current, step) => current + step.ToString() + ", ");
         pathString += "]";
 
+        _targets.Clear();
+
+        foreach (Vector2 step in path)
+        {
+            _targets.Push(step);
+        }
+
         Debug.Log(pathString);
 
-        _target = position;
+        _currentTarget = _targets.Pop();
     }
 }
