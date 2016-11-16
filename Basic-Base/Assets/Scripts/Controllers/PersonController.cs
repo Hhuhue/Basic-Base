@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,21 +59,19 @@ public class PersonController : MonoBehaviour
         transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
     }
 
-    public void GoToPosition(Vector2 position)
+    public void GoToPosition(Vector2 destination)
     {
-        Vector2[] path = PathFinder.GetPath((Vector2)Person.Position + ViewField.Origin, position + ViewField.Origin);
+        Vector2 personPosition = new Vector2((float)Math.Truncate(Person.Position.x), (float)Math.Truncate(Person.Position.y));
+        Vector2 destinationPosition = new Vector2((float)Math.Truncate(destination.x), (float)Math.Truncate(destination.y));
+
+        Vector2[] path = PathFinder.GetPath(personPosition + ViewField.Origin, destinationPosition + ViewField.Origin);
 
         _targets.Clear();
 
-        Debug.Log(ViewField.Origin.ToString());
-
-        _targets.Push(position);
-
         foreach (Vector2 step in path)
         {
-            _targets.Push(step * 10 - ViewField.Origin + Vector2.one / 2);
+            _targets.Push(step * 10 - ViewField.Origin + new Vector2(0.5f, 0.5f));
             Debug.Log(_targets.Peek().ToString());
-
         }
 
         _currentTarget = _targets.Pop();

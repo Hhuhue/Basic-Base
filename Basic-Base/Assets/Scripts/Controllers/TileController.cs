@@ -7,27 +7,35 @@ public class TileController : MonoBehaviour
 {
     private Tile _tile;
     private GameObject _icon;
-    private ViewController _controller;
+    private TextMesh _textMesh;
+    private ViewController _viewController;
     private int _xPosition;
     private int _yPosition;
 
     void Start()
     {
-        _controller = transform.parent.gameObject.GetComponent<ViewController>();
+        _viewController = transform.parent.gameObject.GetComponent<ViewController>();
     }
 
     void OnMouseDown()
     {
-        if (_controller == null) return;
+        if (_viewController == null) return;
 
-        if (_tile.Type != TileType.DEFAULT) _controller.LoadTile(_tile);
+        if (_tile.Type != TileType.DEFAULT) _viewController.LoadTile(_tile);
     }
     
     void OnMouseEnter()
     {
-        if(_controller == null) return;
+        if(_viewController == null) return;
 
-        _controller.SelectTile(_xPosition, _yPosition);
+        if (Config.ViewMode == View.ViewMode.LAND) DisplayPosition(true);
+
+        _viewController.SelectTile(_xPosition, _yPosition);
+    }
+
+    void OnMouseExit()
+    {
+        if (Config.ViewMode == View.ViewMode.LAND) DisplayPosition(false);
     }
 
     public void SetPosition(int x, int y)
@@ -76,5 +84,22 @@ public class TileController : MonoBehaviour
             default:
                 return new Vector3(0, 0, 0);
         }
+    }
+
+    private void DisplayPosition(bool display)
+    {
+        if (_textMesh == null)
+        {
+            GameObject textObject = new GameObject("Text");
+            textObject.AddComponent<MeshRenderer>();
+            textObject.transform.parent = transform;
+            textObject.transform.localPosition = Vector3.back;
+
+            _textMesh = textObject.AddComponent<TextMesh>();
+            _textMesh.fontSize = 20;
+            _textMesh.characterSize = 0.1f;
+        }
+
+        _textMesh.text = (display) ? _tile.Position.ToString() : "";
     }   
 }

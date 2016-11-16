@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,13 +52,13 @@ public class ViewController : MonoBehaviour
         if (!borderState.AnyBorderReached) return;
 
         bool originChanged = false;
-        int multiplier = (Config.ViewMode == View.ViewMode.MAP) ? 1 : 10;
+        int viewModeScale = (Config.ViewMode == View.ViewMode.MAP) ? 1 : 10;
 
         Vector2 relativeOrigin = ViewField.Origin;
         Vector3 cameraMove = Vector3.zero;
 
-        float originXLimit = Config.MapWidth * multiplier - Config.ViewWidth;
-        float originYLimit = Config.MapHeight * multiplier - Config.ViewHeight;
+        float originXLimit = Config.MapWidth * viewModeScale - Config.ViewWidth;
+        float originYLimit = Config.MapHeight * viewModeScale - Config.ViewHeight;
 
         CameraEndState endState = GetCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
 
@@ -111,10 +112,15 @@ public class ViewController : MonoBehaviour
     public void LoadTile(Tile tile)
     {
         if (Config.ViewMode == View.ViewMode.LAND) return;
+
         _selectorRenderer.enabled = false;
 
         Config.ViewMode = View.ViewMode.LAND;
-        ViewField.SetOrigin(new Vector2((int)tile.Position.x - 2.5f, (int)tile.Position.y - 1.25f) * 10);
+
+        Vector2 viewCenter = new Vector2((float)Math.Truncate((float)Config.ViewWidth / 2), (float)Math.Truncate((float)Config.ViewHeight / 2));
+        Vector2 newOrigin = new Vector2((int) tile.Position.x, (int) tile.Position.y) * 10 - viewCenter;
+        ViewField.SetOrigin(newOrigin);
+
         Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
 
         Vector3 position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, 2.5f);
