@@ -4,18 +4,22 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-
-public class Step
+namespace Models.PathFinding
 {
-    public int Cost { get; set; }
-
-    public Tile Location { get; set; }
-
-    public Vector2 Position { get { return Location.Position; } }
-
-    public override string ToString()
+    public class Step
     {
-        return "Cost : " + Cost + " at " + Position;
+        public int Cost { get; set; }
+
+        public Tile Location { get; set; }
+
+        public Vector2 Position
+        {
+            get { return Location.Position; }
+        }
+
+        public override string ToString()
+        {
+            return "Cost : " + Cost + " at " + Position;
+        }
     }
 }
-

@@ -3,52 +3,35 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Models.Entities;
 
 public class PersonController : MonoBehaviour
 {
-    public Entity Person { get; set; }
+    public Living Person { get; set; }
 
     public static View ViewField { get; set; }
-    
-    private Stack<Vector2> _targets;
-    private Vector2 _currentTarget;
 
     void Start()
     {
-        Person = new Entity()
-        {
-            Position = transform.position,
-            Selected = false
-        };
-
-        _targets = new Stack<Vector2>();
-        _currentTarget = transform.position;
+        Person = new Living((Vector2) transform.position + ViewField.Origin);
+        Person.Selected = false;
     }
 
     void Update()
     {
-        if ((Vector2)Person.Position != _currentTarget)
-        {
-            Person.Position = Vector3.MoveTowards(transform.position, _currentTarget, Time.deltaTime * 2);
-            transform.position = Person.Position;
-        }
-        else if (_targets.Count != 0)
-        {
-            _currentTarget = _targets.Pop();
-        }
+        Person.Tick((Vector2)transform.position + ViewField.Origin);
+
+        transform.position = Person.Position - (Vector3)ViewField.Origin;
     }
 
     public void SetPosition(Vector3 position)
     {
-        Person.Position = position;
+        Person.SetPosition((Vector2)position + ViewField.Origin);
     }
 
     public void Translate(Vector2 move)
     {
-        Person.Position += new Vector3(move.x, move.y, 0);
-        _currentTarget += new Vector2(move.x, move.y); ;
-
-        transform.position = Person.Position;
+        transform.position += new Vector3(move.x, move.y, 0);
     }
 
     public void SetSelected(bool state)
@@ -61,19 +44,6 @@ public class PersonController : MonoBehaviour
 
     public void GoToPosition(Vector2 destination)
     {
-        Vector2 personPosition = new Vector2((float)Math.Truncate(Person.Position.x), (float)Math.Truncate(Person.Position.y));
-        Vector2 destinationPosition = new Vector2((float)Math.Truncate(destination.x), (float)Math.Truncate(destination.y));
-
-        Vector2[] path = PathFinder.GetPath(personPosition + ViewField.Origin, destinationPosition + ViewField.Origin);
-
-        _targets.Clear();
-
-        foreach (Vector2 step in path)
-        {
-            _targets.Push(step * 10 - ViewField.Origin + new Vector2(0.5f, 0.5f));
-            Debug.Log(_targets.Peek().ToString());
-        }
-
-        _currentTarget = _targets.Pop();
+        Person.GoToPosition(destination + ViewField.Origin);
     }
 }

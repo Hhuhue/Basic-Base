@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Models.PathFinding;
 
 public static class PathFinder
 {
@@ -75,11 +76,35 @@ public static class PathFinder
 
     private static Vector2[] BuildPath(Step finalStep, List<Step> verfiedSteps)
     {
-        List<Step> path = new List<Step>();
+        List<Vector2> path = new List<Vector2>();
+        List<Step> allSteps = verfiedSteps;
 
-        verfiedSteps.Add(finalStep);
+        Step currentStep = finalStep;
 
-        return verfiedSteps.OrderByDescending(x => x.Cost).Select(x => x.Position).ToArray();
+        path.Add(currentStep.Position);
+
+        while (allSteps.Count != 0)
+        {
+            allSteps = allSteps.Where(stp => stp.Cost < currentStep.Cost).ToList();
+
+            for (float x = -1; x <= 1; x++)
+            {
+                for (float y = -1; y <= 1; y++)
+                {
+                    Vector2 nextPosition = currentStep.Position * 10 + new Vector2(x, y);
+
+                    Step step = allSteps.FirstOrDefault(stp => stp.Position * 10 == nextPosition);
+
+                    if (step == null) continue;
+
+                    currentStep = step;
+                    path.Add(step.Position);
+                    break;
+                }
+            }
+        }
+
+        return path.ToArray();
     }
 }
 
