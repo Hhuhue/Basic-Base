@@ -1,3 +1,4 @@
+using Assets.Scripts.Models;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour

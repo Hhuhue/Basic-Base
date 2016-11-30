@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Models;
+using Assets.Scripts.Models.Mapping;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class MapController : MonoBehaviour

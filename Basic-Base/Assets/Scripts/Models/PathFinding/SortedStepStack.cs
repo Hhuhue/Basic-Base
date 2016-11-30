@@ -1,7 +1,6 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Models.PathFinding
+namespace Assets.Scripts.Models.PathFinding
 {
     public class SortedStepStack
     {

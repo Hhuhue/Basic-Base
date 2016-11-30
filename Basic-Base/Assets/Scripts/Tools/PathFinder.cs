@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using Models.PathFinding;
+using Assets.Scripts.Models;
+using Assets.Scripts.Models.Mapping;
+using Assets.Scripts.Models.PathFinding;
 
 public static class PathFinder
 {

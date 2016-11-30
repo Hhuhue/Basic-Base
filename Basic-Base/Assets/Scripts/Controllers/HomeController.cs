@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections;
+using Assets.Scripts.Models;
+using Assets.Scripts.Models.Mapping;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 

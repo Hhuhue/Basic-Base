@@ -3,7 +3,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Models.Entities;
+using Assets.Scripts.Models;
+using Assets.Scripts.Models.Entities;
 
 public class PersonController : MonoBehaviour
 {

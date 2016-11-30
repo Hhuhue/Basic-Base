@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Orientation = Map.Orientation;
-using TileType = Tile.TileType;
+using Assets.Scripts.Models;
+using Assets.Scripts.Models.Mapping;
+using Orientation = Assets.Scripts.Models.Mapping.Map.Orientation;
+using TileType = Assets.Scripts.Models.Mapping.Tile.TileType;
 
 public class TileController : MonoBehaviour
 {

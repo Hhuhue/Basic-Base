@@ -1,9 +1,8 @@
 ﻿using System;
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace Models.Entities
+namespace Assets.Scripts.Models.Entities
 {
     public class Living : Entity
     {

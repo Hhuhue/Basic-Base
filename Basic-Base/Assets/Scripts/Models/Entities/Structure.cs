@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-
-namespace Models.Entities
+﻿namespace Assets.Scripts.Models.Entities
 {
     public class Structure : Entity
     {
