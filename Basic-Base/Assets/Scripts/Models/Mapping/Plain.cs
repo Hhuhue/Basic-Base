@@ -34,7 +34,7 @@ namespace Assets.Scripts.Models.Mapping
 
         protected sealed override void Smooth()
         {
-            SmoothLand();
+
         }
     }
 }

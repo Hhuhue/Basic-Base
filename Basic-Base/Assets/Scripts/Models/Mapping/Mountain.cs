@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Assets.Scripts.Models.Structures;
 
 namespace Assets.Scripts.Models.Mapping
 {
@@ -13,7 +14,7 @@ namespace Assets.Scripts.Models.Mapping
 
         protected sealed override void Generate()
         {
-            System.Random random = Config.Seed;
+            Random random = Config.Seed;
 
             Border[] mountainZones = GenerateMountainLayers();
 
@@ -52,7 +53,7 @@ namespace Assets.Scripts.Models.Mapping
 
         protected sealed override void Smooth()
         {
-            SmoothLand();
+
         }
 
         private Border[] GenerateMountainLayers()
@@ -64,13 +65,7 @@ namespace Assets.Scripts.Models.Mapping
 
             for (int i = 0; i < layerCount; i++)
             {
-                Border mountainZone = new Border()
-                {
-                    Top = lastBorder.Top - random.Next(1, 3),
-                    Bottom = lastBorder.Bottom + random.Next(1, 3),
-                    Left = lastBorder.Left + random.Next(1, 3),
-                    Right = lastBorder.Right - random.Next(1, 3)
-                };
+                Border mountainZone = new Border(lastBorder.Top - random.Next(1, 3), lastBorder.Bottom + random.Next(1, 3), lastBorder.Left + random.Next(1, 3), lastBorder.Right - random.Next(1, 3));
                 layers[i] = mountainZone;
                 lastBorder = mountainZone;
             }

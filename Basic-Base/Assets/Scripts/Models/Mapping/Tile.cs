@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Orientation = Assets.Scripts.Models.Mapping.Map.Orientation;
 
 namespace Assets.Scripts.Models.Mapping
 {
@@ -9,7 +8,7 @@ namespace Assets.Scripts.Models.Mapping
 
         public TileType Icon { get; set; }
 
-        public Orientation Orientation { get; set; }
+        public Map.Orientation Orientation { get; set; }
 
         public Vector2 Position { get; set; }
 
@@ -44,7 +43,7 @@ namespace Assets.Scripts.Models.Mapping
             CLIFF_CORNER,
             MOUNTAIN_FACE,
             MOUNTAIN_CORNER,
-            MOUNTAIN_TOP,
+            MOUNTAIN_TOP
         }
     }
 }

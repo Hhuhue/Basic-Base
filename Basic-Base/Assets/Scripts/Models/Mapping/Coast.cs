@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Assets.Scripts.Models.Structures;
 
 namespace Assets.Scripts.Models.Mapping
 {
@@ -40,7 +41,7 @@ namespace Assets.Scripts.Models.Mapping
 
         protected sealed override void Smooth()
         {
-            SmoothLand();
+            
         }
 
         private Border[] GetCoastBorder(int thickness, Map.Orientation orientation, bool isCoastEnd)
@@ -74,7 +75,6 @@ namespace Assets.Scripts.Models.Mapping
                 default:
                     return GetBorders(thickness, Map.Orientation.DEFAULT);
             }
-            
         }
 
         private Border[] GetTopBorders(bool isCoastEnd, int thickness)
@@ -134,7 +134,7 @@ namespace Assets.Scripts.Models.Mapping
                     return new Border(9, 0, 9 - thickness, 9);
 
                 default:
-                    return new Border();
+                    return null;
             }
         }
     }

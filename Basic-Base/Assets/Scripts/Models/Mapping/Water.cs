@@ -21,7 +21,7 @@
 
         protected sealed override void Smooth()
         {
-            SmoothLand();
+
         }
     }
 }
