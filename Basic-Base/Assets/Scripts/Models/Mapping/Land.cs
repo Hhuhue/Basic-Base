@@ -37,8 +37,7 @@ namespace Assets.Scripts.Models.Mapping
             {
                 Position = new Vector2(tile.Position.x + x * 0.1f, tile.Position.y + y * 0.1f),
                 Type = type,
-                Icon = icon,
-                IsCrossable = type == Tile.TileType.GRASS
+                Icon = icon
             };
         }
 

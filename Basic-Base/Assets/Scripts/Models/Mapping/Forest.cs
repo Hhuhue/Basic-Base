@@ -89,14 +89,20 @@ namespace Assets.Scripts.Models.Mapping
 
             if (isForest[Orientation.RIGHT] && isForest[Orientation.LEFT])
             {
-                if(!isForest[Orientation.TOP]) TrimSide(Orientation.TOP);
-                if(!isForest[Orientation.BOTTOM]) TrimSide(Orientation.BOTTOM);
+                if(!isForest[Orientation.TOP] && !isForest[Orientation.TOP_LEFT] && !isForest[Orientation.TOP_RIGHT])
+                    TrimSide(Orientation.TOP);
+
+                if(!isForest[Orientation.BOTTOM] && !isForest[Orientation.BOTTOM_LEFT] && !isForest[Orientation.BOTTOM_RIGHT])
+                    TrimSide(Orientation.BOTTOM);
             }
 
             if (isForest[Orientation.TOP] && isForest[Orientation.BOTTOM])
             {
-                if (!isForest[Orientation.LEFT]) TrimSide(Orientation.LEFT);
-                if (!isForest[Orientation.RIGHT]) TrimSide(Orientation.RIGHT);
+                if (!isForest[Orientation.LEFT] && !isForest[Orientation.TOP_LEFT] && !isForest[Orientation.BOTTOM_LEFT])
+                    TrimSide(Orientation.LEFT);
+
+                if (!isForest[Orientation.RIGHT] && !isForest[Orientation.TOP_RIGHT] && !isForest[Orientation.BOTTOM_RIGHT])
+                    TrimSide(Orientation.RIGHT);
             }
         }
 
@@ -114,7 +120,8 @@ namespace Assets.Scripts.Models.Mapping
                 {
                     int number = Config.Seed.Next(0, 100);
 
-                    if (GetTrimCornerChance(corner, x, y) <= number) land[x, y].Icon = Tile.TileType.DEFAULT;
+                    if (GetTrimCornerChance(corner, x, y) <= number)
+                        land[x, y].Icon = Tile.TileType.DEFAULT;
                 }
             }
         }
@@ -159,26 +166,30 @@ namespace Assets.Scripts.Models.Mapping
 
         private int GetTrimCornerChance(Orientation corner, int x, int y)
         {
-            if (corner == Orientation.BOTTOM_LEFT) return (x + y) * 10;
+            const int CHANCE_FACTOR = 10; 
 
-            if (corner == Orientation.BOTTOM_RIGHT) return (y + LAND_WIDTH - 1 - x) * 10;
+            if (corner == Orientation.BOTTOM_LEFT) return (x + y) * CHANCE_FACTOR;
 
-            if (corner == Orientation.TOP_LEFT) return (LAND_HEIGHT - 1 - y + x) * 10;
+            if (corner == Orientation.BOTTOM_RIGHT) return (y + LAND_WIDTH - 1 - x) * CHANCE_FACTOR;
 
-            if (corner == Orientation.TOP_RIGHT) return (LAND_HEIGHT + LAND_WIDTH - 2 - y - x) * 10;
+            if (corner == Orientation.TOP_LEFT) return (LAND_HEIGHT - 1 - y + x) * CHANCE_FACTOR;
+
+            if (corner == Orientation.TOP_RIGHT) return (LAND_HEIGHT + LAND_WIDTH - 2 - y - x) * CHANCE_FACTOR;
 
             return 100;
         }
 
         private int GetTrimSideChance(Orientation side, int x, int y)
         {
-            if (side == Orientation.LEFT) return x * 33;
+            const int CHANCE_FACTOR = 20;
 
-            if (side == Orientation.RIGHT) return (LAND_WIDTH - 1 - x) * 33;
+            if (side == Orientation.LEFT) return x * CHANCE_FACTOR;
 
-            if (side == Orientation.BOTTOM) return y * 33;
+            if (side == Orientation.RIGHT) return (LAND_WIDTH - 1 - x) * CHANCE_FACTOR;
 
-            if (side == Orientation.TOP) return (LAND_HEIGHT - 1 - y) * 33;
+            if (side == Orientation.BOTTOM) return y * CHANCE_FACTOR;
+
+            if (side == Orientation.TOP) return (LAND_HEIGHT - 1 - y) * CHANCE_FACTOR;
 
             return 100;
         }

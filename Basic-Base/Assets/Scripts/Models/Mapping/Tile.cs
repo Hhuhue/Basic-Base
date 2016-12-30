@@ -12,8 +12,6 @@ namespace Assets.Scripts.Models.Mapping
 
         public Vector2 Position { get; set; }
 
-        public bool IsCrossable { get; set; }
-
         public TileType GetGlobalType()
         {
             return Icon == TileType.DEFAULT ? Type : Icon;
