@@ -5,12 +5,12 @@ namespace Assets.Scripts.Models.Mapping
 {
     public abstract class Land
     {
+        public const int LAND_HEIGHT = 10;
+        public const int LAND_WIDTH = 10;
+
         protected Tile[,] land;
         protected Tile tile;
         protected Map map;
-
-        protected const int LAND_HEIGHT = 10;
-        protected const int LAND_WIDTH = 10;
 
         protected Land(Map map, Tile tile)
         {
@@ -39,14 +39,6 @@ namespace Assets.Scripts.Models.Mapping
                 Type = type,
                 Icon = icon
             };
-        }
-
-        public struct Surrounding
-        {
-            public Tile Top { get; set; }
-            public Tile Bottom { get; set; }
-            public Tile Left { get; set; }
-            public Tile Right { get; set; }
         }
     }
 }

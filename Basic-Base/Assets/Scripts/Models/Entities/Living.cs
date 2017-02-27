@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Tools;
 using UnityEngine;
 
 namespace Assets.Scripts.Models.Entities

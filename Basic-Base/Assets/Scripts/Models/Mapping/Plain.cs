@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Models.Structures;
+using Assets.Scripts.Tools;
 using Orientation = Assets.Scripts.Models.Mapping.Map.Orientation;
 
 namespace Assets.Scripts.Models.Mapping
@@ -39,85 +41,21 @@ namespace Assets.Scripts.Models.Mapping
 
         protected sealed override void Smooth()
         {
-            int xPosition = (int)tile.Position.x;
-            int yPosition = (int)tile.Position.y;
-            int index = 0;
+            Func<Tile, bool> condition = (currentTile) => currentTile.Type == Tile.TileType.WATER;
+            Tile replacement = new Tile() {Type = Tile.TileType.WATER, Icon = Tile.TileType.DEFAULT};
 
-            Orientation[] orientations =
+            CornerSmoother.Smooth(ref tile, ref map, ref land, condition, replacement);
+
+            condition = (currentTile) => currentTile.Icon == Tile.TileType.FOREST;
+            Tile[] replacements =
             {
-                Orientation.BOTTOM_LEFT,
-                Orientation.LEFT,
-                Orientation.TOP_LEFT,
-                Orientation.BOTTOM,
-                Orientation.TOP,
-                Orientation.BOTTOM_RIGHT,
-                Orientation.RIGHT,
-                Orientation.TOP_RIGHT
+                new Tile() { Type = Tile.TileType.GRASS, Icon = Tile.TileType.PINE },
+                new Tile() { Type = Tile.TileType.GRASS, Icon = Tile.TileType.TREE },
+                new Tile() { Type = Tile.TileType.GRASS, Icon = Tile.TileType.DEFAULT }
+
             };
 
-            Dictionary<Orientation, bool> isForest = new Dictionary<Orientation, bool>();
-
-            for (int x = -1; x < 2; x++)
-            {
-                for (int y = -1; y < 2; y++)
-                {
-                    if (x == 0 && y == 0) continue;
-
-                    Tile currentTile = map.GetTile(xPosition + x, yPosition + y);
-                    isForest.Add(orientations[index], currentTile != null && currentTile.Icon == Tile.TileType.FOREST);
-
-                    index++;
-                }
-            }
-
-            if (isForest[Orientation.TOP] && isForest[Orientation.LEFT])
-                FillForestCorner(Orientation.TOP_LEFT);
-
-            if (isForest[Orientation.TOP] && isForest[Orientation.RIGHT])
-                FillForestCorner(Orientation.TOP_RIGHT);
-
-            if (isForest[Orientation.BOTTOM] && isForest[Orientation.LEFT])
-                FillForestCorner(Orientation.BOTTOM_LEFT);
-
-            if (isForest[Orientation.BOTTOM] && isForest[Orientation.RIGHT])
-                FillForestCorner(Orientation.BOTTOM_RIGHT);
-        }
-
-        private void FillForestCorner(Orientation corner)
-        {
-            const int PINE_CHANCE = 50;
-
-            int xStart = (corner == Orientation.BOTTOM_LEFT || corner == Orientation.TOP_LEFT) ? 0 : LAND_WIDTH / 2;
-            int xMax = (corner == Orientation.BOTTOM_LEFT || corner == Orientation.TOP_LEFT) ? LAND_WIDTH / 2 : LAND_WIDTH;
-
-            int yStart = (corner == Orientation.BOTTOM_LEFT || corner == Orientation.BOTTOM_RIGHT) ? 0 : LAND_HEIGHT / 2;
-            int yMax = (corner == Orientation.BOTTOM_LEFT || corner == Orientation.BOTTOM_RIGHT) ? LAND_HEIGHT / 2 : LAND_HEIGHT;
-
-            for (int x = xStart; x < xMax; x++)
-            {
-                for (int y = yStart; y < yMax; y++)
-                {
-                    int number = Config.Seed.Next(0, 100);
-
-                    Tile.TileType type = (number < PINE_CHANCE) ? Tile.TileType.PINE : Tile.TileType.TREE;
-
-                    if (GetFillForestCornerChance(corner, x, y) <= number)
-                        land[x, y].Icon = type;
-                }
-            }
-        }
-
-        private int GetFillForestCornerChance(Orientation corner, int x, int y)
-        {
-            if (corner == Orientation.BOTTOM_LEFT) return (x + y) * 10;
-
-            if (corner == Orientation.BOTTOM_RIGHT) return (y + LAND_WIDTH - 1 - x) * 10;
-
-            if (corner == Orientation.TOP_LEFT) return (LAND_HEIGHT - 1 - y + x) * 10;
-
-            if (corner == Orientation.TOP_RIGHT) return (LAND_HEIGHT + LAND_WIDTH - 2 - y - x) * 10;
-
-            return 100;
+            CornerSmoother.Smooth(ref tile, ref map, ref land, condition, replacements);
         }
     }
 }

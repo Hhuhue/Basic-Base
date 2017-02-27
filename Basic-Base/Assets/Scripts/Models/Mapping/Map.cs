@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Tools;
+using UnityEngine;
 using Random = System.Random;
 
 namespace Assets.Scripts.Models.Mapping
@@ -121,16 +122,16 @@ namespace Assets.Scripts.Models.Mapping
                         Orientation coastOrientation = GetCoastOrientation(x, y);
                         if (coastOrientation == Orientation.DEFAULT || number >= ratio) continue;
 
-                        Tile.TileType coastType = IsCoastEnd(x, y) ? Tile.TileType.COAST_END
-                            : IsOrientationCorner(coastOrientation) ? Tile.TileType.COAST_CORNER
-                                : Tile.TileType.COAST;
+                        Tile.TileType coastType = IsCoastEnd(x, y) 
+                            ? Tile.TileType.COAST_END : IsOrientationCorner(coastOrientation) 
+                            ? Tile.TileType.COAST_CORNER : Tile.TileType.COAST;
 
                         _map[x, y].Icon = coastType;
                         _map[x, y].Orientation = coastOrientation;
                     }
                     else
                     {
-                        _map[x, y].Icon = number < ratio ? resource : _map[x, y].Icon;
+                        _map[x, y].Icon = (number < ratio) ? resource : _map[x, y].Icon;
                     }
                 }
             }
