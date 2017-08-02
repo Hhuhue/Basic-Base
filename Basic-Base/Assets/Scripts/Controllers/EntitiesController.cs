@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class EntitiesController : MonoBehaviour
+namespace Assets.Scripts.Controllers
 {
-    void Update()
+    public class EntitiesController : MonoBehaviour
     {
+        void Update()
+        {
 
+        }
     }
 }

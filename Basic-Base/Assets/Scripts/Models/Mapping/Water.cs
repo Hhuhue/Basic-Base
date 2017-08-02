@@ -34,7 +34,8 @@ namespace Assets.Scripts.Models.Mapping
 
             Tile replacement = new Tile() {Type = Tile.TileType.GRASS, Icon = Tile.TileType.DEFAULT};
 
-            CornerSmoother.Smooth(ref tile, ref map, ref land, condition, replacement);
+            CornerSmoother.SetCornerSmoother(ref tile, ref map, ref land);
+            CornerSmoother.Smooth(condition, false, replacement);
         }
     }
 }

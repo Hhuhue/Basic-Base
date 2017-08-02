@@ -44,9 +44,11 @@ namespace Assets.Scripts.Models.Mapping
             Func<Tile, bool> condition = (currentTile) => currentTile.Type == Tile.TileType.WATER;
             Tile replacement = new Tile() {Type = Tile.TileType.WATER, Icon = Tile.TileType.DEFAULT};
 
-            CornerSmoother.Smooth(ref tile, ref map, ref land, condition, replacement);
+            CornerSmoother.SetCornerSmoother(ref tile, ref map, ref land);
+            CornerSmoother.Smooth(condition, false, replacement);
 
             condition = (currentTile) => currentTile.Icon == Tile.TileType.FOREST;
+
             Tile[] replacements =
             {
                 new Tile() { Type = Tile.TileType.GRASS, Icon = Tile.TileType.PINE },
@@ -55,7 +57,8 @@ namespace Assets.Scripts.Models.Mapping
 
             };
 
-            CornerSmoother.Smooth(ref tile, ref map, ref land, condition, replacements);
+            CornerSmoother.SetCornerSmoother(ref tile, ref map, ref land);
+            CornerSmoother.Smooth(condition, true, replacements);
         }
     }
 }

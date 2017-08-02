@@ -1,66 +1,101 @@
 using Assets.Scripts.Models;
 using UnityEngine;
 
-public class CameraController : MonoBehaviour
+namespace Assets.Scripts.Controllers
 {
-    private Camera _thisCamera;
-    private const int _maxSize = 8;
-
-    void Start()
+    public class CameraController : MonoBehaviour
     {
-        _thisCamera = Camera.main;
-        _thisCamera.orthographicSize = _maxSize;
-    }
+        private Camera _thisCamera;
+        private const int MAX_SIZE = 8;
 
-    void Update()
-    {
-        ManageMovement();
+        void Start()
+        {
+            _thisCamera = Camera.main;
+            _thisCamera.orthographicSize = MAX_SIZE;
+        }
 
-        ManageZoom();
-    }
+        void Update()
+        {
+            manageMovement();
 
-    private void ManageMovement()
-    {
-        float currentSize = _thisCamera.orthographicSize;
-        Vector3 currentPosition = _thisCamera.transform.position;
+            manageZoom();
+        }
 
-        Vector3 move = GetMove();
+        /// <summary>
+        /// Manages the movement of the camera.
+        /// </summary>
+        private void manageMovement()
+        {
+            float currentSize = _thisCamera.orthographicSize;
+            Vector3 currentPosition = _thisCamera.transform.position;
 
-        if (currentPosition.x + currentSize * 2 + move.x > Config.ViewWidth)
-            move.x = Config.ViewWidth - currentPosition.x - currentSize * 2;
-        else if (currentPosition.x - currentSize * 2 + move.x < 0)
-            move.x = 0 - currentPosition.x + currentSize * 2;
+            Vector3 move = getMove();
 
-        if (currentPosition.y + currentSize + move.y > Config.ViewHeight)
-            move.y = Config.ViewHeight - currentPosition.y - currentSize;
-        else if (currentPosition.y - currentSize + move.y < 0)
-            move.y = 0 - currentPosition.y + currentSize;
+            //If the camera right border will go pass the field of view 
+            if (currentPosition.x + currentSize*2 + move.x > Config.ViewWidth)
+            {
+                //Put the camera to the left side of the view
+                move.x = Config.ViewWidth - currentPosition.x - currentSize * 2;
+            }
+            //If the camera left border will go pass the field of view 
+            else if (currentPosition.x - currentSize*2 + move.x < 0)
+            {
+                //Put the camera to the right side of the view
+                move.x = 0 - currentPosition.x + currentSize * 2;
+            }
 
-        _thisCamera.transform.position += move;
-    }
+            //If the camera top border will go pass the field of view 
+            if (currentPosition.y + currentSize + move.y > Config.ViewHeight)
+            {
+                //Put the camera to the bottom side of the view
+                move.y = Config.ViewHeight - currentPosition.y - currentSize;
+            }
+            //If the camera bottom border will go pass the field of view 
+            else if (currentPosition.y - currentSize + move.y < 0)
+            {
+                //Put the camera to the top side of the view
+                move.y = 0 - currentPosition.y + currentSize;
+            }
 
-    private void ManageZoom()
-    {
-        float currentSize = _thisCamera.orthographicSize;
+            _thisCamera.transform.position += move;
+        }
 
-        if (Input.GetAxis("Mouse ScrollWheel") > 0 && currentSize - 1 >= 1)
-            _thisCamera.orthographicSize--;
+        /// <summary>
+        /// Manages the zoom input of the user
+        /// </summary>
+        private void manageZoom()
+        {
+            float currentSize = _thisCamera.orthographicSize;
 
-        if (Input.GetAxis("Mouse ScrollWheel") < 0 && currentSize + 1 <= _maxSize)
-            _thisCamera.orthographicSize++;
-    }
+            //Manage zoom in
+            if (Input.GetAxis("Mouse ScrollWheel") > 0 && currentSize - 1 >= 1)
+                _thisCamera.orthographicSize--;
 
-    private Vector3 GetMove()
-    {
-        Vector3 move = Vector3.zero;
+            //Manage zoom out
+            if (Input.GetAxis("Mouse ScrollWheel") < 0 && currentSize + 1 <= MAX_SIZE)
+                _thisCamera.orthographicSize++;
+        }
 
-        float speed = _thisCamera.orthographicSize / 10;
+        /// <summary>
+        /// Makes a translation vector out of the user's key input
+        /// </summary>
+        /// <returns>The translation vector. </returns>
+        private Vector3 getMove()
+        {
+            Vector3 move = Vector3.zero;
 
-        if (Input.GetKey(KeyCode.A)) move.x = -speed;
-        if (Input.GetKey(KeyCode.D)) move.x = speed;
-        if (Input.GetKey(KeyCode.S)) move.y = -speed;
-        if (Input.GetKey(KeyCode.W)) move.y = speed;
+            //The speed is a tenth of the camera size
+            float speed = _thisCamera.orthographicSize / 10;
 
-        return move;
+            //Parse horizontal inputs
+            if (Input.GetKey(KeyCode.A)) move.x = -speed;
+            if (Input.GetKey(KeyCode.D)) move.x = speed;
+
+            //Parse vertical inputs
+            if (Input.GetKey(KeyCode.S)) move.y = -speed;
+            if (Input.GetKey(KeyCode.W)) move.y = speed;
+
+            return move;
+        }
     }
 }

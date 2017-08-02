@@ -1,50 +1,49 @@
-﻿using System;
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Assets.Scripts.Models;
+﻿using Assets.Scripts.Models;
 using Assets.Scripts.Models.Entities;
+using UnityEngine;
 
-public class PersonController : MonoBehaviour
+namespace Assets.Scripts.Controllers
 {
-    public Living Person { get; set; }
-
-    public static View ViewField { get; set; }
-
-    void Start()
+    public class PersonController : MonoBehaviour
     {
-        Person = new Living((Vector2) transform.position + ViewField.Origin);
-        Person.Selected = false;
-    }
+        public Living Person { get; set; }
 
-    void Update()
-    {
-        Person.Tick((Vector2)transform.position + ViewField.Origin);
+        public static View ViewField { get; set; }
 
-        transform.position = Person.Position - (Vector3)ViewField.Origin;
-    }
+        void Start()
+        {
+            Person = new Living((Vector2) transform.position + ViewField.Origin);
+            Person.Selected = false;
+        }
 
-    public void SetPosition(Vector3 position)
-    {
-        Person.SetPosition((Vector2)position + ViewField.Origin);
-    }
+        void Update()
+        {
+            Person.Tick((Vector2)transform.position + ViewField.Origin);
 
-    public void Translate(Vector2 move)
-    {
-        transform.position += new Vector3(move.x, move.y, 0);
-    }
+            transform.position = Person.Position - (Vector3)ViewField.Origin;
+        }
 
-    public void SetSelected(bool state)
-    {
-        Person.Selected = state;
-        string iconPath = !state ? "" : Config.SpritesPath + "circle";
+        public void SetPosition(Vector3 position)
+        {
+            Person.SetPosition((Vector2)position + ViewField.Origin);
+        }
 
-        transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
-    }
+        public void Translate(Vector2 move)
+        {
+            transform.position += new Vector3(move.x, move.y, 0);
+        }
 
-    public void GoToPosition(Vector2 destination)
-    {
-        Person.GoToPosition(destination + ViewField.Origin);
+        public void SetSelected(bool state)
+        {
+            Person.Selected = state;
+            string iconPath = !state ? "" : Config.SpritesPath + "circle";
+
+            transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
+        }
+
+        public void GoToPosition(Vector2 destination)
+        {
+            Person.GoToPosition(destination + ViewField.Origin);
+        }
     }
 }

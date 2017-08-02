@@ -9,72 +9,98 @@ namespace Assets.Scripts.Tools
 {
     public static class CornerSmoother
     {
-        public static void Smooth(ref Tile tile, ref Map map, ref Tile[,] land, Func<Tile, bool> condition, params Tile[] replacement)
+        private static Tile _tile;
+        private static Tile[,] _land;
+        private static Map _map;
+
+        public static void SetCornerSmoother(ref Tile tile, ref Map map, ref Tile[,] land)
         {
-            int xPosition = (int)tile.Position.x;
-            int yPosition = (int)tile.Position.y;
+            _tile = tile;
+            _land = land;
+            _map = map;
+        }
+
+        public static void Smooth(Func<Tile, bool> condition, bool checkDiagonals, params Tile[] replacement)
+        {
+            if (_tile == null || _land == null || _map == null)
+            {
+                throw new InvalidOperationException("ConerSmoother improperly set.");
+            }
+
+            int xPosition = (int)_tile.Position.x;
+            int yPosition = (int)_tile.Position.y;
             int index = 0;
 
             Map.Orientation[] orientations =
             {
+                Map.Orientation.BOTTOM_LEFT,
                 Map.Orientation.LEFT,
+                Map.Orientation.TOP_LEFT,
                 Map.Orientation.BOTTOM,
                 Map.Orientation.TOP,
-                Map.Orientation.RIGHT
+                Map.Orientation.BOTTOM_RIGHT,
+                Map.Orientation.RIGHT,
+                Map.Orientation.TOP_RIGHT
             };
 
-            Dictionary<Map.Orientation, bool> isWater = new Dictionary<Map.Orientation, bool>();
+            Dictionary<Map.Orientation, bool> doesRespectCondition = new Dictionary<Map.Orientation, bool>();
 
             for (int x = -1; x < 2; x++)
             {
                 for (int y = -1; y < 2; y++)
                 {
-                    if (!(x == 0 ^ y == 0)) continue;
+                    if (x == 0 && y == 0) continue;
 
-                    Tile currentTile = map.GetTile(xPosition + x, yPosition + y);
-                    isWater.Add(orientations[index], currentTile != null && condition(currentTile));
+                    Tile currentTile = _map.GetTile(xPosition + x, yPosition + y);
+                    doesRespectCondition.Add(orientations[index], currentTile != null && condition(currentTile));
 
                     index++;
                 }
             }
 
-            if (isWater[Map.Orientation.TOP] && isWater[Map.Orientation.LEFT])
-                TrimCorner(Map.Orientation.TOP_LEFT, ref land, replacement);
+            bool trimTopLeft = doesRespectCondition[Map.Orientation.TOP] && doesRespectCondition[Map.Orientation.LEFT];
+            trimTopLeft = (checkDiagonals) ? trimTopLeft && doesRespectCondition[Map.Orientation.TOP_LEFT] : trimTopLeft;
 
-            if (isWater[Map.Orientation.TOP] && isWater[Map.Orientation.RIGHT])
-                TrimCorner(Map.Orientation.TOP_RIGHT, ref land, replacement);
+            bool trimBottomLeft = doesRespectCondition[Map.Orientation.BOTTOM] && doesRespectCondition[Map.Orientation.LEFT];
+            trimBottomLeft = (checkDiagonals) ? trimBottomLeft && doesRespectCondition[Map.Orientation.BOTTOM_LEFT] : trimBottomLeft;
 
-            if (isWater[Map.Orientation.BOTTOM] && isWater[Map.Orientation.LEFT])
-                TrimCorner(Map.Orientation.BOTTOM_LEFT, ref land, replacement);
+            bool trimTopRight = doesRespectCondition[Map.Orientation.TOP] && doesRespectCondition[Map.Orientation.RIGHT];
+            trimTopRight = (checkDiagonals) ? trimTopRight && doesRespectCondition[Map.Orientation.TOP_RIGHT] : trimTopRight;
 
-            if (isWater[Map.Orientation.BOTTOM] && isWater[Map.Orientation.RIGHT])
-                TrimCorner(Map.Orientation.BOTTOM_RIGHT, ref land, replacement);
+            bool trimBottomRight = doesRespectCondition[Map.Orientation.BOTTOM] && doesRespectCondition[Map.Orientation.RIGHT];
+            trimBottomRight = (checkDiagonals) ? trimBottomRight && doesRespectCondition[Map.Orientation.BOTTOM_RIGHT] : trimBottomRight;
 
+            if (trimTopLeft) trimCorner(Map.Orientation.TOP_LEFT, ref _land, replacement);
 
+            if (trimTopRight) trimCorner(Map.Orientation.TOP_RIGHT, ref _land, replacement);
+
+            if (trimBottomLeft) trimCorner(Map.Orientation.BOTTOM_LEFT, ref _land, replacement);
+
+            if (trimBottomRight) trimCorner(Map.Orientation.BOTTOM_RIGHT, ref _land, replacement);
+
+            _tile = null;
+            _land = null;
+            _map = null;
         }
 
-        private static void TrimCorner(Map.Orientation corner, ref Tile[,] land, Tile[] replacement)
+        private static void trimCorner(Map.Orientation corner, ref Tile[,] land, Tile[] replacement)
         {
             Random random = Config.Seed;
             int replacementCount = replacement.Length;
 
-            int xStart = (corner == Map.Orientation.BOTTOM_LEFT || 
-                corner == Map.Orientation.TOP_LEFT) ? 0 : Land.LAND_WIDTH / 2;
+            int xStart = (corner == Map.Orientation.BOTTOM_LEFT || corner == Map.Orientation.TOP_LEFT) ? 0 : Land.LAND_WIDTH / 2;
 
-            int xMax = (corner == Map.Orientation.BOTTOM_LEFT || 
-                corner == Map.Orientation.TOP_LEFT) ? Land.LAND_WIDTH / 2 : Land.LAND_WIDTH;
+            int xMax = (corner == Map.Orientation.BOTTOM_LEFT || corner == Map.Orientation.TOP_LEFT) ? Land.LAND_WIDTH / 2 : Land.LAND_WIDTH;
 
-            int yStart = (corner == Map.Orientation.BOTTOM_LEFT || corner == Map.Orientation.BOTTOM_RIGHT) 
-                ? 0 : Land.LAND_HEIGHT / 2;
+            int yStart = (corner == Map.Orientation.BOTTOM_LEFT || corner == Map.Orientation.BOTTOM_RIGHT) ? 0 : Land.LAND_HEIGHT / 2;
 
-            int yMax = (corner == Map.Orientation.BOTTOM_LEFT || corner == Map.Orientation.BOTTOM_RIGHT) 
-                ? Land.LAND_HEIGHT / 2 : Land.LAND_HEIGHT;
+            int yMax = (corner == Map.Orientation.BOTTOM_LEFT || corner == Map.Orientation.BOTTOM_RIGHT) ? Land.LAND_HEIGHT / 2 : Land.LAND_HEIGHT;
 
             for (int x = xStart; x < xMax; x++)
             {
                 for (int y = yStart; y < yMax; y++)
                 {
-                    if (!DoChangeTile(corner, x, y)) continue;
+                    if (!isTileToChange(corner, x, y)) continue;
                     int index = random.Next(0, replacementCount - 1);
 
                     land[x, y].Type = replacement[index].Type;
@@ -83,7 +109,7 @@ namespace Assets.Scripts.Tools
             }
         }
 
-        private static bool DoChangeTile(Map.Orientation corner, int x, int y)
+        private static bool isTileToChange(Map.Orientation corner, int x, int y)
         {
             bool isOnSide = false;
             bool isInSide = false;

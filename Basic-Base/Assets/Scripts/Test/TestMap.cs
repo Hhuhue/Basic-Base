@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Assets.Scripts.Controllers;
 
 public class TestMap : MonoBehaviour
 {
