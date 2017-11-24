@@ -46,7 +46,7 @@ namespace Assets.Scripts.Models.Entities
             foreach (Vector2 step in path)
             {
                 _path.Push(step * 10 + new Vector2(0.5f, 0.5f));
-                Debug.Log(_path.Peek().ToString());
+                //Debug.Log(_path.Peek().ToString());
             }
 
             _currentTarget = _path.Pop();

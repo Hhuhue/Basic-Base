@@ -12,12 +12,17 @@ namespace Assets.Scripts.Models.Mapping
         protected Tile tile;
         protected Map map;
 
-        protected Land(Map map, Tile tile)
+        public Land(Map map, Tile tile)
         {
             this.map = map;
             this.tile = tile;
 
             land = new Tile[LAND_WIDTH, LAND_HEIGHT];
+        }
+
+        public Land(Tile[,] landTiles)
+        {
+            this.land = landTiles;
         }
 
         public Tile GetLandPiece(int x, int y)

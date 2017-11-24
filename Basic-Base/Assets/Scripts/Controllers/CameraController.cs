@@ -3,17 +3,26 @@ using UnityEngine;
 
 namespace Assets.Scripts.Controllers
 {
+    /// <summary>
+    /// The camera view controller
+    /// </summary>
     public class CameraController : MonoBehaviour
     {
         private Camera _thisCamera;
         private const int MAX_SIZE = 8;
 
+        /// <summary>
+        /// The start event
+        /// </summary>
         void Start()
         {
             _thisCamera = Camera.main;
             _thisCamera.orthographicSize = MAX_SIZE;
         }
 
+        /// <summary>
+        /// Ther update event
+        /// </summary>
         void Update()
         {
             manageMovement();

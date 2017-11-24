@@ -1,7 +1,7 @@
 ﻿using Assets.Scripts.Models.Mapping;
 using UnityEngine;
 
-namespace Assets.Scripts.Models.PathFinding
+namespace Assets.Scripts.Models.Structures
 {
     public class Step
     {

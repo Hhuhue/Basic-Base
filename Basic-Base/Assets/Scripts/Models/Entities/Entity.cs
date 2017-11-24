@@ -2,8 +2,10 @@
 
 namespace Assets.Scripts.Models.Entities
 {
-    public class Entity
+    public abstract class Entity
     {
+        public int Id { get; set; }
+
         public string Name { get; set; }
 
         public Vector3 Position { get; set; }

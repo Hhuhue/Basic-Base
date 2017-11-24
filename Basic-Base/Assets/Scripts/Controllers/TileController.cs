@@ -58,16 +58,6 @@ namespace Assets.Scripts.Controllers
             SetIcon(tile);
         }
 
-        private void SetIcon(Tile tile)
-        {
-            string iconPath = tile.Icon == TileType.DEFAULT ? "" : tile.Icon.ToString().ToLower();
-
-            _icon = transform.GetChild(0).gameObject;
-            _icon.transform.position = new Vector3(transform.position.x, transform.position.y, _icon.transform.parent.position.z - 1);
-            _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + iconPath);
-            _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
-        }
-
         public static Vector3 OrientationToVector(Orientation orientation)
         {
             switch (orientation)
@@ -87,6 +77,16 @@ namespace Assets.Scripts.Controllers
                 default:
                     return new Vector3(0, 0, 0);
             }
+        }
+
+        private void SetIcon(Tile tile)
+        {
+            string iconPath = tile.Icon == TileType.DEFAULT ? "" : tile.Icon.ToString().ToLower();
+
+            _icon = transform.GetChild(0).gameObject;
+            _icon.transform.position = new Vector3(transform.position.x, transform.position.y, _icon.transform.parent.position.z - 1);
+            _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + iconPath);
+            _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
         }
 
         private void DisplayPosition(bool display)

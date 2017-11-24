@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Models;
+﻿using System.Globalization;
+using Assets.Scripts.Models;
 using Assets.Scripts.Models.Mapping;
 using Assets.Scripts.Tools;
 using UnityEngine;
@@ -65,7 +66,7 @@ namespace Assets.Scripts.Controllers
         {
             if (!UseMenuConfig)
             {
-                if (UseRandomSeed) Seed = System.DateTime.UtcNow.ToString();
+                if (UseRandomSeed) Seed = System.DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
 
                 Config.MapHeight = Height;
                 Config.MapWidth = Width;
