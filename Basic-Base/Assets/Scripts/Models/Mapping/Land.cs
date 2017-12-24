@@ -12,7 +12,7 @@ namespace Assets.Scripts.Models.Mapping
         protected Tile tile;
         protected Map map;
 
-        public Land(Map map, Tile tile)
+        protected Land(Map map, Tile tile)
         {
             this.map = map;
             this.tile = tile;
@@ -20,7 +20,7 @@ namespace Assets.Scripts.Models.Mapping
             land = new Tile[LAND_WIDTH, LAND_HEIGHT];
         }
 
-        public Land(Tile[,] landTiles)
+        protected Land(Tile[,] landTiles)
         {
             this.land = landTiles;
         }

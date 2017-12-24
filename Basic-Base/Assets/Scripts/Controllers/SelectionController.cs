@@ -50,7 +50,7 @@ namespace Assets.Scripts.Controllers
             {
                 Transform entity = transform.GetChild(i);
 
-                entity.GetComponent<PersonController>().SetSelected(IsWithinSelectionBounds(entity));
+                entity.GetComponent<PersonController>().SetSelected(isWithinSelectionBounds(entity));
             }
         }
 
@@ -68,7 +68,7 @@ namespace Assets.Scripts.Controllers
             return selection;
         } 
     
-        private bool IsWithinSelectionBounds(Transform entity)
+        private bool isWithinSelectionBounds(Transform entity)
         {
             if (!_isSelecting) return false;
 

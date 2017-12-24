@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.Scripts.Models.Resources;
 using Assets.Scripts.Tools;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace Assets.Scripts.Models.Entities
     {
         private Vector2 _currentTarget;
         private Stack<Vector2> _path;
+        private Inventory _inventory;
 
         public Living(Vector2 position)
         {
@@ -46,7 +48,6 @@ namespace Assets.Scripts.Models.Entities
             foreach (Vector2 step in path)
             {
                 _path.Push(step * 10 + new Vector2(0.5f, 0.5f));
-                //Debug.Log(_path.Peek().ToString());
             }
 
             _currentTarget = _path.Pop();
