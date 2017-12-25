@@ -41,10 +41,10 @@ namespace Assets.Scripts.Controllers
             Vector3 move = getMove();
 
             //If the camera right border will go pass the field of view 
-            if (currentPosition.x + currentSize*2 + move.x > Config.ViewWidth)
+            if (currentPosition.x + currentSize*2 + move.x > View.VIEW_WIDTH)
             {
                 //Put the camera to the left side of the view
-                move.x = Config.ViewWidth - currentPosition.x - currentSize * 2;
+                move.x = View.VIEW_WIDTH - currentPosition.x - currentSize * 2;
             }
             //If the camera left border will go pass the field of view 
             else if (currentPosition.x - currentSize*2 + move.x < 0)
@@ -54,10 +54,10 @@ namespace Assets.Scripts.Controllers
             }
 
             //If the camera top border will go pass the field of view 
-            if (currentPosition.y + currentSize + move.y > Config.ViewHeight)
+            if (currentPosition.y + currentSize + move.y > View.VIEW_HEIGHT)
             {
                 //Put the camera to the bottom side of the view
-                move.y = Config.ViewHeight - currentPosition.y - currentSize;
+                move.y = View.VIEW_HEIGHT - currentPosition.y - currentSize;
             }
             //If the camera bottom border will go pass the field of view 
             else if (currentPosition.y - currentSize + move.y < 0)

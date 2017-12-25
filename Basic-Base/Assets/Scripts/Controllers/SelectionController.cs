@@ -26,7 +26,7 @@ namespace Assets.Scripts.Controllers
 
             if (Input.GetMouseButtonDown(1))
             {
-                List<PersonController> selection = GetSelection();
+                List<PersonController> selection = getSelection();
                 Vector3 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
                 foreach (PersonController controller in selection)
@@ -54,7 +54,7 @@ namespace Assets.Scripts.Controllers
             }
         }
 
-        private List<PersonController> GetSelection()
+        private List<PersonController> getSelection()
         {
             List<PersonController> selection = new List<PersonController>();
 

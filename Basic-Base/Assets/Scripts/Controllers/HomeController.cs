@@ -26,14 +26,17 @@ namespace Assets.Scripts.Controllers
 
         private string _previousSeed;
         private Map _map;
+        private static Config _gameConfig;
 
         void Start()
         {
-            LoadMap();
+            _gameConfig = new Config();
+            loadMap(_gameConfig);
 
-            for (int x = 0; x < Config.MapWidth; x++)
+            //Generates a map for the background of the menu
+            for (int x = 0; x < _gameConfig.MapWidth; x++)
             {
-                for (int y = 0; y < Config.ViewHeight; y++)
+                for (int y = 0; y < _gameConfig.MapHeight; y++)
                 {
                     Tile tile = _map.GetTile(x, y);
 
@@ -53,9 +56,14 @@ namespace Assets.Scripts.Controllers
 
             Camera.main.transform.position = new Vector3(25, 12.5f, -3);
             Camera.main.orthographicSize = 9;
-            Config.SmoothCount = 1;
-            Config.SpritesPath = "Sprites/";
-            Config.Seed = new System.Random(_previousSeed.GetHashCode());
+
+            _gameConfig.SmoothCount = 1;
+            _gameConfig.Seed = new System.Random(_previousSeed.GetHashCode());
+        }
+
+        public static Config GetConfig()
+        {
+            return _gameConfig;
         }
 
         public void StartGame()
@@ -69,33 +77,33 @@ namespace Assets.Scripts.Controllers
             OptionsGroup.SetActive(true);
         }
 
-        public void CancelOption()
+        public void CancelOption(Config gameConfig)
         {
-            HeightInput.GetComponent<InputField>().text = Config.MapHeight.ToString();
-            WidthInput.GetComponent<InputField>().text = Config.MapWidth.ToString();
-            LandInput.GetComponent<Slider>().value = (float)(Config.FillRatio - 40) / 5;
-            ForestInput.GetComponent<Slider>().value = (float)(Config.ForestRatio - 10) / 15;
-            MountainInput.GetComponent<Slider>().value = (float)(Config.MountainRatio - 8) / 6;
-            CoastInput.GetComponent<Slider>().value = (float)(Config.CoastRatio - 15) / 10;
+            HeightInput.GetComponent<InputField>().text = gameConfig.MapHeight.ToString();
+            WidthInput.GetComponent<InputField>().text = gameConfig.MapWidth.ToString();
+            LandInput.GetComponent<Slider>().value = (float)(gameConfig.FillRatio - 40) / 5;
+            ForestInput.GetComponent<Slider>().value = (float)(gameConfig.ForestRatio - 10) / 15;
+            MountainInput.GetComponent<Slider>().value = (float)(gameConfig.MountainRatio - 8) / 6;
+            CoastInput.GetComponent<Slider>().value = (float)(gameConfig.CoastRatio - 15) / 10;
             SeedInput.GetComponent<Text>().text = _previousSeed;
 
             HomeGroup.SetActive(true);
             OptionsGroup.SetActive(false);
         }
 
-        public void SaveOption()
+        public void SaveOption(Config gameConfig)
         {
             string seed = UseRandomInput.GetComponent<Toggle>().isOn 
                 ? DateTime.UtcNow.ToString()
                 : SeedInput.GetComponent<Text>().text;
 
-            Config.MapHeight = int.Parse(HeightInput.GetComponent<InputField>().text);
-            Config.MapWidth = int.Parse(WidthInput.GetComponent<InputField>().text);
-            Config.FillRatio = 40 + int.Parse(LandInput.GetComponent<Slider>().value.ToString()) * 5;
-            Config.ForestRatio = 10 + int.Parse(ForestInput.GetComponent<Slider>().value.ToString()) * 15;
-            Config.MountainRatio = 8 + int.Parse(MountainInput.GetComponent<Slider>().value.ToString()) * 6;
-            Config.CoastRatio = 15 + int.Parse(CoastInput.GetComponent<Slider>().value.ToString()) * 10;
-            Config.Seed = new System.Random(seed.GetHashCode());
+            gameConfig.MapHeight = int.Parse(HeightInput.GetComponent<InputField>().text);
+            gameConfig.MapWidth = int.Parse(WidthInput.GetComponent<InputField>().text);
+            gameConfig.FillRatio = 40 + int.Parse(LandInput.GetComponent<Slider>().value.ToString()) * 5;
+            gameConfig.ForestRatio = 10 + int.Parse(ForestInput.GetComponent<Slider>().value.ToString()) * 15;
+            gameConfig.MountainRatio = 8 + int.Parse(MountainInput.GetComponent<Slider>().value.ToString()) * 6;
+            gameConfig.CoastRatio = 15 + int.Parse(CoastInput.GetComponent<Slider>().value.ToString()) * 10;
+            gameConfig.Seed = new System.Random(seed.GetHashCode());
 
             HomeGroup.SetActive(true);
             OptionsGroup.SetActive(false);
@@ -170,21 +178,20 @@ namespace Assets.Scripts.Controllers
             selection.GetComponent<Text>().text = text;
         }
 
-        private void LoadMap()
+        private void loadMap(Config gameConfig)
         {
-            Config.MapHeight = Config.ViewHeight;
-            Config.MapWidth = Config.ViewWidth;
-            Config.FillRatio = 55;
-            Config.ForestRatio = 60;
-            Config.MountainRatio = 20;
-            Config.CoastRatio = 35;
-            Config.Seed = new System.Random("Home".GetHashCode());
-            Config.SmoothCount = 1;
-            Config.SpritesPath = "Sprites/";
+            gameConfig.MapHeight = View.VIEW_HEIGHT;
+            gameConfig.MapWidth = View.VIEW_WIDTH;
+            gameConfig.FillRatio = 55;
+            gameConfig.ForestRatio = 60;
+            gameConfig.MountainRatio = 20;
+            gameConfig.CoastRatio = 35;
+            gameConfig.Seed = new System.Random("Home".GetHashCode());
+            gameConfig.SmoothCount = 1;
 
-            _map = new Map();
+            _map = new Map(gameConfig);
 
-            CancelOption();
+            CancelOption(gameConfig);
         }
     }
 }

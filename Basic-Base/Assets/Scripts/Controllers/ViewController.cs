@@ -1,6 +1,7 @@
 ﻿using System;
 using Assets.Scripts.Models;
 using Assets.Scripts.Models.Mapping;
+using Assets.Scripts.Tools;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,27 +9,33 @@ namespace Assets.Scripts.Controllers
 {
     public class ViewController : MonoBehaviour
     {
-        public View ViewField { get; set; }
         public GameObject EntityContainer { get; set; }
         public GameObject MapButton { get; set; }
 
         private GameObject[,] _children;
-        private Map _map;
         private SpriteRenderer _selectorRenderer;
+        private Game _game;
+        private int _mapHeight;
+        private int _mapWidth;
 
         void Start()
         {
-            SetSelector();
+            _game = GameProvider.Game();
+
+            var dimentions = _game.GetMapDimentions();
+            _mapHeight = dimentions["Height"];
+            _mapWidth = dimentions["Width"];
+
+            setSelector();
 
             MapButton.GetComponent<Button>().onClick.AddListener(LoadMap);
-            _children = new GameObject[Config.ViewWidth, Config.ViewHeight];
-            _map = GetComponent<MapController>().GetMap();
+            _children = new GameObject[View.VIEW_WIDTH, View.VIEW_HEIGHT];
 
-            for (int x = 0; x < Config.ViewWidth; x++)
+            for (int x = 0; x < View.VIEW_WIDTH; x++)
             {
-                for (int y = 0; y < Config.ViewHeight; y++)
+                for (int y = 0; y < View.VIEW_HEIGHT; y++)
                 {
-                    Tile tile = _map.GetTile(x, y);
+                    Tile tile = _game.GetViewTile(x, y);
 
                     GameObject tileObject = Instantiate(Resources.Load<GameObject>("Prefabs/Tile"));
                     tileObject.transform.parent = transform;
@@ -50,22 +57,22 @@ namespace Assets.Scripts.Controllers
             Vector3 cameraPosition = mainCamera.transform.position;
             float cameraSize = mainCamera.orthographicSize;
 
-            CameraBorderState borderState = GetCameraBorderState(cameraPosition, cameraSize);
+            CameraBorderState borderState = getCameraBorderState(cameraPosition, cameraSize);
 
             if (!borderState.AnyBorderReached) return;
 
             bool originChanged = false;
-            int viewModeScale = (Config.ViewMode == View.ViewMode.MAP) ? 1 : 10;
+            int viewModeScale = (Game.ViewMode == View.ViewMode.MAP) ? 1 : 10;
 
-            Vector2 relativeOrigin = ViewField.Origin;
+            Vector2 relativeOrigin = _game.GetViewOrigin();
             Vector3 cameraMove = Vector3.zero;
 
-            float originXLimit = Config.MapWidth * viewModeScale - Config.ViewWidth;
-            float originYLimit = Config.MapHeight * viewModeScale - Config.ViewHeight;
+            float originXLimit = _mapWidth * viewModeScale - View.VIEW_WIDTH;
+            float originYLimit = _mapHeight * viewModeScale - View.VIEW_HEIGHT;
 
-            CameraEndState endState = GetCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
+            CameraEndState endState = getCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
 
-            float jumpSizeX = Config.ViewWidth - 1 - cameraSize * 4;
+            float jumpSizeX = View.VIEW_WIDTH - 1 - cameraSize * 4;
             if (Input.GetKey(KeyCode.A) && borderState.LeftBorderReached && !endState.LeftEndReached)
             {
                 originChanged = true;
@@ -84,7 +91,7 @@ namespace Assets.Scripts.Controllers
                 relativeOrigin.x += jumpSizeX;
             }
 
-            float jumpSizeY = Config.ViewHeight - 1 - cameraSize * 2;
+            float jumpSizeY = View.VIEW_HEIGHT - 1 - cameraSize * 2;
             if (Input.GetKey(KeyCode.S) && borderState.BottomBorderReached && !endState.BottomEndReached)
             {
                 originChanged = true;
@@ -106,38 +113,39 @@ namespace Assets.Scripts.Controllers
 
             if (!originChanged) return;
             mainCamera.transform.position += cameraMove;
-            ViewField.SetOrigin(relativeOrigin);
-            UpdateView();
-            UpdateEntities(cameraMove);
+            _game.SetViewOrigin(relativeOrigin);
+            updateView();
+            updateEntities(cameraMove);
         }
 
         public void LoadTile(Tile tile)
         {
-            if (Config.ViewMode == View.ViewMode.LAND) return;
+            if (Game.ViewMode == View.ViewMode.LAND) return;
 
             _selectorRenderer.enabled = false;
 
-            Config.ViewMode = View.ViewMode.LAND;
+            Game.ViewMode = View.ViewMode.LAND;
 
-            Vector2 viewCenter = new Vector2((float)Math.Truncate((float)Config.ViewWidth / 2), (float)Math.Truncate((float)Config.ViewHeight / 2));
+            Vector2 viewCenter = new Vector2((float)Math.Truncate((float)View.VIEW_WIDTH / 2), (float)Math.Truncate((float)View.VIEW_HEIGHT / 2));
             Vector2 newOrigin = new Vector2((int) tile.Position.x, (int) tile.Position.y) * 10 - viewCenter;
-            ViewField.SetOrigin(newOrigin);
+            _game.SetViewOrigin(newOrigin);
 
-            Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
+            Camera.main.transform.position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, -5);
 
-            Vector3 position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, 2.5f);
+            //Todo: to remove
+            Vector3 position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, 2.5f);
             GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
             person.transform.position = position;
             person.transform.parent = EntityContainer.transform;
 
             EntityContainer.SetActive(true);
 
-            UpdateView();
+            updateView();
         }
 
         public void SelectTile(int xPosition, int yPosition)
         {
-            if (Config.ViewMode == View.ViewMode.LAND) return;
+            if (Game.ViewMode == View.ViewMode.LAND) return;
             Vector3 position = new Vector3(xPosition + 0.5f, yPosition + 0.5f, 1);
 
             _selectorRenderer.enabled = true;
@@ -146,16 +154,16 @@ namespace Assets.Scripts.Controllers
 
         public void LoadMap()
         {
-            if (Config.ViewMode == View.ViewMode.MAP) return;
+            if (Game.ViewMode == View.ViewMode.MAP) return;
             _selectorRenderer.enabled = true;
 
-            int maxViewXPosition = Config.MapWidth - Config.ViewWidth;
-            int maxViewYPosition = Config.MapHeight - Config.ViewHeight;
+            int maxViewXPosition = _mapWidth - View.VIEW_WIDTH;
+            int maxViewYPosition = _mapHeight - View.VIEW_HEIGHT;
 
-            Config.ViewMode = View.ViewMode.MAP;
-            Vector2 viewCenter = new Vector2(Config.ViewWidth / 2, Config.ViewHeight / 2);
+            Game.ViewMode = View.ViewMode.MAP;
+            Vector2 viewCenter = new Vector2(View.VIEW_WIDTH / 2, View.VIEW_HEIGHT / 2);
 
-            Vector2 focusedLandPiecePosition = ViewField.Origin + viewCenter;
+            Vector2 focusedLandPiecePosition = _game.GetViewOrigin() + viewCenter;
             Vector2 scaledPosition = focusedLandPiecePosition / 10;
             Vector2 scaledOrigin = scaledPosition - viewCenter;        
 
@@ -164,39 +172,37 @@ namespace Assets.Scripts.Controllers
 
             Debug.Log("Focus: " + focusedLandPiecePosition.ToString() + ", Scaled focus: " + scaledPosition.ToString() + ", Scaled origin: " + scaledOrigin.ToString());
 
-            ViewField.SetOrigin(scaledOrigin);
-            Camera.main.transform.position = new Vector3(Config.ViewWidth / 2 + 5, Config.ViewHeight / 2 + 5, -5);
+            _game.SetViewOrigin(scaledOrigin);
+            Camera.main.transform.position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, -5);
         
             EntityContainer.SetActive(false);
 
-            UpdateView();
+            updateView();
         }
 
-        private void SetSelector()
+        private void setSelector()
         {
             GameObject selector = new GameObject("selector");
             selector.transform.parent = transform;
             selector.transform.position = new Vector3(0, 0, 1);
             _selectorRenderer = selector.AddComponent<SpriteRenderer>();
-            _selectorRenderer.sprite = Resources.Load<Sprite>(Config.SpritesPath + "selection");
+            _selectorRenderer.sprite = Resources.Load<Sprite>(Game.SpritesPath + "selection");
             _selectorRenderer.enabled = false;
         }
 
-        private void UpdateView()
+        private void updateView()
         {
-            Tile[,] view = ViewField.GetView();
-
-            for (int x = 0; x < Config.ViewWidth; x++)
+            for (int x = 0; x < View.VIEW_WIDTH; x++)
             {
-                for (int y = 0; y < Config.ViewHeight; y++)
+                for (int y = 0; y < View.VIEW_HEIGHT; y++)
                 {
                     TileController tile = _children[x, y].GetComponent<TileController>();
-                    tile.SetTile(view[x, y]);
+                    tile.SetTile(_game.GetViewTile(x, y));
                 }
             }
         }
 
-        private void UpdateEntities(Vector2 move)
+        private void updateEntities(Vector2 move)
         {
             for (int i = 0; i < EntityContainer.transform.childCount; i++)
             {
@@ -205,18 +211,18 @@ namespace Assets.Scripts.Controllers
             }
         }
 
-        private CameraBorderState GetCameraBorderState(Vector3 cameraPosition, float cameraSize)
+        private CameraBorderState getCameraBorderState(Vector3 cameraPosition, float cameraSize)
         {
             return new CameraBorderState
             {
                 LeftBorderReached = cameraPosition.x - cameraSize * 2 <= 1,
-                RightBorderReached = cameraPosition.x + cameraSize * 2 >= Config.ViewWidth,
+                RightBorderReached = cameraPosition.x + cameraSize * 2 >= View.VIEW_WIDTH,
                 BottomBorderReached = cameraPosition.y - cameraSize <= 1,
-                TopBorderReached = cameraPosition.y + cameraSize >= Config.ViewHeight
+                TopBorderReached = cameraPosition.y + cameraSize >= View.VIEW_HEIGHT
             };
         }
 
-        private CameraEndState GetCameraEndState(CameraBorderState borderState, Vector2 relativeOrigin, float xLimit, float yLimit)
+        private CameraEndState getCameraEndState(CameraBorderState borderState, Vector2 relativeOrigin, float xLimit, float yLimit)
         {
             return new CameraEndState
             {

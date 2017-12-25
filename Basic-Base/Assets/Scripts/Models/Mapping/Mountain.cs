@@ -6,17 +6,20 @@ namespace Assets.Scripts.Models.Mapping
 {
     public class Mountain : Land
     {
-        public Mountain(Map map, Tile tile) : base(map, tile)
+        public Mountain(Map map, Tile tile, Random seed) : base(map, tile)
         {
-            Generate();
-            Smooth();
+            Generate(seed);
+            //Smooth();
         }
 
-        protected sealed override void Generate()
+        public sealed override void Smooth()
         {
-            Random random = Config.Seed;
 
-            Border[] mountainZones = GenerateMountainLayers();
+        }
+
+        protected sealed override void Generate(Random random)
+        {
+            Border[] mountainZones = generateMountainLayers(random);
 
             for (int x = 0; x < LAND_WIDTH; x++)
             {
@@ -41,24 +44,18 @@ namespace Assets.Scripts.Models.Mapping
                 {
                     for (int y = (int)layer.Bottom; y <= layer.Top; y++)
                     {
-                        Map.Orientation orientation = GetMountainFaceOrientation(x, y, layer);
+                        Map.Orientation orientation = getMountainFaceOrientation(x, y, layer);
                         Tile.TileType type = map.IsOrientationCorner(orientation) ? Tile.TileType.MOUNTAIN_CORNER : land[x, y].Icon;
 
                         land[x, y].Icon = type;
-                        land[x, y].Orientation = type == Tile.TileType.MOUNTAIN_TOP ? Map.Orientation.DEFAULT : orientation;
+                        land[x, y].Orientation = type == Tile.TileType.MOUNTAIN_TOP ? Map.Orientation.Default : orientation;
                     }
                 }
             }
         }
 
-        protected sealed override void Smooth()
+        private Border[] generateMountainLayers(Random random)
         {
-
-        }
-
-        private Border[] GenerateMountainLayers()
-        {
-            Random random = Config.Seed;
             int layerCount = random.Next(1, 4);
             Border[] layers = new Border[layerCount];
             Border lastBorder = new Border(LAND_HEIGHT - 1, -1, -1, LAND_WIDTH - 1);
@@ -73,9 +70,9 @@ namespace Assets.Scripts.Models.Mapping
             return layers;
         }
 
-        private Map.Orientation GetMountainFaceOrientation(int x, int y, Border border)
+        private Map.Orientation getMountainFaceOrientation(int x, int y, Border border)
         {
-            if (land[x, y].Icon == Tile.TileType.MOUNTAIN_TOP) return Map.Orientation.DEFAULT;
+            if (land[x, y].Icon == Tile.TileType.MOUNTAIN_TOP) return Map.Orientation.Default;
 
             bool borderOnTop = y + 1 <= border.Top && border.IsPositionOnBorder(x, y + 1);
             bool borderOnBottom = y - 1 >= border.Bottom && border.IsPositionOnBorder(x, y - 1);
@@ -83,20 +80,20 @@ namespace Assets.Scripts.Models.Mapping
             bool borderOnRight = x + 1 <= border.Right && border.IsPositionOnBorder(x + 1, y);
 
             if (borderOnTop && borderOnBottom)
-                return (x - 1 < border.Left) ? Map.Orientation.LEFT : Map.Orientation.RIGHT;
+                return (x - 1 < border.Left) ? Map.Orientation.Left : Map.Orientation.Right;
 
             if (borderOnLeft && borderOnRight)
-                return (y - 1 < border.Bottom) ? Map.Orientation.BOTTOM : Map.Orientation.TOP;
+                return (y - 1 < border.Bottom) ? Map.Orientation.Bottom : Map.Orientation.Top;
 
-            if (borderOnBottom && borderOnRight) return Map.Orientation.TOP_LEFT;
+            if (borderOnBottom && borderOnRight) return Map.Orientation.TopLeft;
 
-            if (borderOnBottom && borderOnLeft) return Map.Orientation.TOP_RIGHT;
+            if (borderOnBottom && borderOnLeft) return Map.Orientation.TopRight;
 
-            if (borderOnTop && borderOnRight) return Map.Orientation.BOTTOM_LEFT;
+            if (borderOnTop && borderOnRight) return Map.Orientation.BottomLeft;
 
-            if (borderOnTop && borderOnLeft) return Map.Orientation.BOTTOM_RIGHT;
+            if (borderOnTop && borderOnLeft) return Map.Orientation.BottomRight;
 
-            return Map.Orientation.DEFAULT;
+            return Map.Orientation.Default;
         }
     }
 }

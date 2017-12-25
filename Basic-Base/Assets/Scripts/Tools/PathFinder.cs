@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Models;
 using Assets.Scripts.Models.Mapping;
 using Assets.Scripts.Models.Structures;
 using UnityEngine;
@@ -11,7 +12,12 @@ namespace Assets.Scripts.Tools
     {
         private static readonly Tile.TileType[] WalkableTiles = {Tile.TileType.GRASS, Tile.TileType.SAND};
 
-        public static Map Land { get; set; }
+        private static Game _gameWorld; 
+
+        public static void Initialize(Game game)
+        {
+            _gameWorld = game;
+        }
 
         /// <summary>
         /// Generates a path from a given point to a destination 
@@ -22,11 +28,11 @@ namespace Assets.Scripts.Tools
         public static Vector2[] GetPath(Vector2 start, Vector2 destination)
         {
             //Get the tile at the start point
-            Tile startTile = Land.GetLand((int)Math.Truncate(start.x / 10), (int)Math.Truncate(start.y / 10))
+            Tile startTile = _gameWorld.GetMapLand((int)Math.Truncate(start.x / 10), (int)Math.Truncate(start.y / 10))
                 .GetLandPiece((int)Math.Round(start.x) % 10, (int)Math.Round(start.y) % 10);
 
             //Get the tile at the destination point
-            Tile destinationTile = Land.GetLand((int)Math.Truncate(destination.x / 10), (int)Math.Truncate(destination.y / 10))
+            Tile destinationTile = _gameWorld.GetMapLand((int)Math.Truncate(destination.x / 10), (int)Math.Truncate(destination.y / 10))
                 .GetLandPiece((int)Math.Round(destination.x) % 10, (int)Math.Round(destination.y) % 10);
 
             //Check if the destination is valid
@@ -74,7 +80,7 @@ namespace Assets.Scripts.Tools
                         Step nearStep = new Step()
                         {
                             Cost = currentStep.Cost + 1,
-                            Location = Land.GetLand(landPositionX, landPositionY)
+                            Location = _gameWorld.GetMapLand(landPositionX, landPositionY)
                                 .GetLandPiece(landPiecePositionX, landPiecePositionY)
                         };
 

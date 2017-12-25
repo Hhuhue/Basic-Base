@@ -9,16 +9,14 @@ namespace Assets.Scripts.Models.Mapping
 {
     public class Forest : Land
     {
-        public Forest(Map map, Tile tile) : base(map, tile)
+        public Forest(Map map, Tile tile, Random seed) : base(map, tile)
         {
-            Generate();
-            Smooth();
+            Generate(seed);
+            //Smooth();
         }
 
-        protected sealed override void Generate()
+        protected sealed override void Generate(Random random)
         {
-            Random random = Config.Seed;
-
             const int ROCK_CHANCE = 2;
             const int PINE_CHANCE = 50;
             const int TREE_CHANCE = 90;
@@ -43,19 +41,17 @@ namespace Assets.Scripts.Models.Mapping
             }
         }
 
-        protected sealed override void Smooth()
+        public sealed override void Smooth()
         {
             Func<Tile, bool> condition = (currentTile) => currentTile.Icon != Tile.TileType.FOREST;
             Tile replacement = new Tile() {Type = Tile.TileType.GRASS, Icon = Tile.TileType.DEFAULT};
-
-            CornerSmoother.SetCornerSmoother(ref tile, ref map, ref land);
-            CornerSmoother.Smooth(condition, false, replacement);
+            
+            CornerSmoother.Smooth(tile, condition, false, replacement);
 
             condition = (currentTile) => currentTile.Type == Tile.TileType.WATER;
             replacement = new Tile() { Type = Tile.TileType.WATER, Icon = Tile.TileType.DEFAULT };
-
-            CornerSmoother.SetCornerSmoother(ref tile, ref map, ref land);
-            CornerSmoother.Smooth(condition, false, replacement);
+            
+            CornerSmoother.Smooth(tile, condition, false, replacement);
         }
     }
 }

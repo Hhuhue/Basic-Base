@@ -32,9 +32,9 @@ namespace Assets.Scripts.Models.Mapping
             return land[x, y];
         }
 
-        protected abstract void Generate();
+        public abstract void Smooth();
 
-        protected abstract void Smooth();
+        protected abstract void Generate(Random random);
 
         protected void SetLandPiece(int x, int y, Tile.TileType type, Tile.TileType icon)
         {

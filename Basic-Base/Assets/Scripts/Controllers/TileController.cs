@@ -31,14 +31,14 @@ namespace Assets.Scripts.Controllers
         {
             if(_viewController == null) return;
 
-            if (Config.ViewMode == View.ViewMode.LAND) DisplayPosition(true);
+            if (Game.ViewMode == View.ViewMode.LAND) displayPosition(true);
 
             _viewController.SelectTile(_xPosition, _yPosition);
         }
 
         void OnMouseExit()
         {
-            if (Config.ViewMode == View.ViewMode.LAND) DisplayPosition(false);
+            if (Game.ViewMode == View.ViewMode.LAND) displayPosition(false);
         }
 
         public void SetPosition(int x, int y)
@@ -53,25 +53,25 @@ namespace Assets.Scripts.Controllers
 
             string sprite = tile.Type.ToString().ToLower();
 
-            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + sprite);
+            GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Game.SpritesPath + sprite);
 
-            SetIcon(tile);
+            setIcon(tile);
         }
 
         public static Vector3 OrientationToVector(Orientation orientation)
         {
             switch (orientation)
             {
-                case Orientation.BOTTOM:
-                case Orientation.BOTTOM_LEFT:
+                case Orientation.Bottom:
+                case Orientation.BottomLeft:
                     return new Vector3(0, 0, 90);
 
-                case Orientation.RIGHT:
-                case Orientation.BOTTOM_RIGHT:
+                case Orientation.Right:
+                case Orientation.BottomRight:
                     return new Vector3(0, 0, 180);
 
-                case Orientation.TOP:
-                case Orientation.TOP_RIGHT:
+                case Orientation.Top:
+                case Orientation.TopRight:
                     return new Vector3(0, 0, -90);
 
                 default:
@@ -79,17 +79,17 @@ namespace Assets.Scripts.Controllers
             }
         }
 
-        private void SetIcon(Tile tile)
+        private void setIcon(Tile tile)
         {
             string iconPath = tile.Icon == TileType.DEFAULT ? "" : tile.Icon.ToString().ToLower();
 
             _icon = transform.GetChild(0).gameObject;
             _icon.transform.position = new Vector3(transform.position.x, transform.position.y, _icon.transform.parent.position.z - 1);
-            _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Config.SpritesPath + iconPath);
+            _icon.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(Game.SpritesPath + iconPath);
             _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
         }
 
-        private void DisplayPosition(bool display)
+        private void displayPosition(bool display)
         {
             if (_textMesh == null)
             {

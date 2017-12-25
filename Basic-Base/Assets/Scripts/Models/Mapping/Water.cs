@@ -7,13 +7,13 @@ namespace Assets.Scripts.Models.Mapping
 {
     public class Water : Land
     {
-        public Water(Map map, Tile tile) : base(map, tile)
+        public Water(Map map, Tile tile, Random seed) : base(map, tile)
         {
-            Generate();
-            Smooth();
+            Generate(seed);
+            //Smooth();
         }
 
-        protected sealed override void Generate()
+        protected sealed override void Generate(Random random)
         {
             for (int x = 0; x < LAND_WIDTH; x++)
             {
@@ -24,7 +24,7 @@ namespace Assets.Scripts.Models.Mapping
             }
         }
 
-        protected sealed override void Smooth()
+        public sealed override void Smooth()
         {
             Func<Tile, bool> condition = (currentTile) => 
                 currentTile.Type == Tile.TileType.PLAIN && (
@@ -33,9 +33,8 @@ namespace Assets.Scripts.Models.Mapping
                 currentTile.Icon == Tile.TileType.DEFAULT);
 
             Tile replacement = new Tile() {Type = Tile.TileType.GRASS, Icon = Tile.TileType.DEFAULT};
-
-            CornerSmoother.SetCornerSmoother(ref tile, ref map, ref land);
-            CornerSmoother.Smooth(condition, false, replacement);
+            
+            CornerSmoother.Smooth(tile, condition, false, replacement);
         }
     }
 }

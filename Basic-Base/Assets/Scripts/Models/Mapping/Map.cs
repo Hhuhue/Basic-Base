@@ -4,29 +4,61 @@ using Random = System.Random;
 
 namespace Assets.Scripts.Models.Mapping
 {
+    /// <summary>
+    /// The world map
+    /// </summary>
     public class Map
     {
         private Tile[,] _map;
         private Land[,] _lands;
+        private int _mapHeight;
+        private int _mapWidth;
 
-        public Map()
+        /// <summary>
+        /// Creates a new instance of map
+        /// </summary>
+        /// <param name="configuration">The generation configuration. </param>
+        public Map(Config configuration)
         {
-            _map = new Tile[Config.MapWidth, Config.MapHeight];
-            _lands = new Land[Config.MapWidth, Config.MapHeight];
-
-            RandomFillMap();
-            SmoothMap();
-            GenerateResource(Config.ForestRatio, Tile.TileType.FOREST);
-            GenerateResource(Config.MountainRatio, Tile.TileType.MOUNTAIN);
-            GenerateResource(Config.CoastRatio, Tile.TileType.COAST);
-            GenerateLands();
+            _mapHeight = configuration.MapHeight;
+            _mapWidth = configuration.MapWidth;
+            _map = new Tile[_mapWidth, _mapHeight];
+            _lands = new Land[_mapWidth, _mapHeight];
+            
+            randomFillMap(configuration);
+            smoothMap(configuration);
+            generateResource(configuration.Seed, configuration.ForestRatio, Tile.TileType.FOREST);
+            generateResource(configuration.Seed, configuration.MountainRatio, Tile.TileType.MOUNTAIN);
+            generateResource(configuration.Seed, configuration.CoastRatio, Tile.TileType.COAST);
+            //generateLands(configuration.Seed);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="seed"></param>
+        public void GenerateLands(Random seed)
+        {
+            generateLands(seed);
+        }
+
+        /// <summary>
+        /// Check if the coordinates are within the map
+        /// </summary>
+        /// <param name="x">The x coordinates</param>
+        /// <param name="y">The y coordinates</param>
+        /// <returns></returns>
         public bool IsPositionValid(int x, int y)
         {
-            return y >= 0 && x >= 0 && y < Config.MapHeight && x < Config.MapWidth;
+            return y >= 0 && x >= 0 && y < _mapHeight && x < _mapWidth;
         }
 
+        /// <summary>
+        /// Gets the tile at the given position
+        /// </summary>
+        /// <param name="x">The x coordinates</param>
+        /// <param name="y">The y coordinates</param>
+        /// <returns></returns>
         public Tile GetTile(int x, int y)
         {
             if (!IsPositionValid(x, y)) return null;
@@ -34,51 +66,62 @@ namespace Assets.Scripts.Models.Mapping
             return _map[x, y];
         }
 
+        /// <summary>
+        /// Gets the land at the given position.
+        /// </summary>
+        /// <param name="x">The x coordinates</param>
+        /// <param name="y">The y coordinates</param>
+        /// <returns></returns>
         public Land GetLand(int x, int y)
         {
             if (!IsPositionValid(x, y)) return null;
 
             return _lands[x, y];
         }
-    
+        
+        /// <summary>
+        /// Checks if the given orientation value defines a corners.
+        /// </summary>
+        /// <param name="orientation">The orientation value. </param>
+        /// <returns>Whether </returns>
         public bool IsOrientationCorner(Orientation orientation)
         {
-            return orientation == Orientation.BOTTOM_LEFT ||
-                   orientation == Orientation.BOTTOM_RIGHT ||
-                   orientation == Orientation.TOP_LEFT ||
-                   orientation == Orientation.TOP_RIGHT;
+            return orientation == Orientation.BottomLeft ||
+                   orientation == Orientation.BottomRight ||
+                   orientation == Orientation.TopLeft ||
+                   orientation == Orientation.TopRight;
         }
 
         public void SaveMap()
         {
-            SaveManager.Save(_map, Config.MapHeight, Config.MapWidth);
+            SaveManager.Save(_map, _mapHeight, _mapWidth);
         }
 
-        private void RandomFillMap()
+        private void randomFillMap(Config configuration)
         {
-            for (int x = 0; x < Config.MapWidth; x++)
+            for (int x = 0; x < configuration.MapWidth; x++)
             {
-                for (int y = 0; y < Config.MapHeight; y++)
+                for (int y = 0; y < configuration.MapHeight; y++)
                 {
                     _map[x, y] = new Tile
                     {
                         Position = new Vector2(x, y),
-                        Type = Config.Seed.Next(0, 100) < Config.FillRatio ? Tile.TileType.PLAIN : Tile.TileType.WATER,
-                        Orientation = Orientation.DEFAULT
+                        Type = configuration.Seed.Next(0, 100) < configuration.FillRatio ? Tile.TileType.PLAIN : Tile.TileType.WATER,
+                        Orientation = Orientation.Default
                     };
                 }
             }
         }
 
-        private void SmoothMap()
+        private void smoothMap(Config configuration)
         {
-            for (int i = 0; i < Config.SmoothCount; i++)
+            for (int i = 0; i < configuration.SmoothCount; i++)
             {
-                for (int x = 0; x < Config.MapWidth; x++)
+                for (int x = 0; x < configuration.MapWidth; x++)
                 {
-                    for (int y = 0; y < Config.MapHeight; y++)
+                    for (int y = 0; y < configuration.MapHeight; y++)
                     {
-                        int surroundingLandCount = GetSurroundingLandCount(x, y);
+                        int surroundingLandCount = getSurroundingLandCount(x, y);
 
                         if (surroundingLandCount > 4) _map[x, y].Type = Tile.TileType.PLAIN;
                         if (surroundingLandCount < 4) _map[x, y].Type = Tile.TileType.WATER;
@@ -87,7 +130,7 @@ namespace Assets.Scripts.Models.Mapping
             }
         }
 
-        private int GetSurroundingLandCount(int xPosition, int yPosition)
+        private int getSurroundingLandCount(int xPosition, int yPosition)
         {
             int landCount = 0;
 
@@ -105,13 +148,11 @@ namespace Assets.Scripts.Models.Mapping
             return landCount;
         }
 
-        void GenerateResource(int ratio, Tile.TileType resource)
+        void generateResource(Random random, int ratio, Tile.TileType resource)
         {
-            Random random = Config.Seed;
-
-            for (int x = 0; x < Config.MapWidth; x++)
+            for (int x = 0; x < _mapWidth; x++)
             {
-                for (int y = 0; y < Config.MapHeight; y++)
+                for (int y = 0; y < _mapHeight; y++)
                 {
                     if (_map[x, y].Type == Tile.TileType.WATER) continue;
 
@@ -119,10 +160,10 @@ namespace Assets.Scripts.Models.Mapping
 
                     if (resource == Tile.TileType.COAST)
                     {
-                        Orientation coastOrientation = GetCoastOrientation(x, y);
-                        if (coastOrientation == Orientation.DEFAULT || number >= ratio) continue;
+                        Orientation coastOrientation = getCoastOrientation(x, y);
+                        if (coastOrientation == Orientation.Default || number >= ratio) continue;
 
-                        Tile.TileType coastType = IsCoastEnd(x, y) 
+                        Tile.TileType coastType = isCoastEnd(x, y) 
                             ? Tile.TileType.COAST_END : IsOrientationCorner(coastOrientation) 
                             ? Tile.TileType.COAST_CORNER : Tile.TileType.COAST;
 
@@ -137,95 +178,95 @@ namespace Assets.Scripts.Models.Mapping
             }
         }
 
-        private void GenerateLands()
+        private void generateLands(Random seed)
         {
-            for (int x = 0; x < Config.MapWidth; x++)
+            for (int x = 0; x < _mapWidth; x++)
             {
-                for (int y = 0; y < Config.MapHeight; y++)
+                for (int y = 0; y < _mapHeight; y++)
                 {
                     switch (_map[x,y].GetGlobalType())
                     {
                         case Tile.TileType.PLAIN:
-                            _lands[x, y] = new Plain(this, _map[x, y]);
+                            _lands[x, y] = new Plain(this, _map[x, y], seed);
                             break;
 
                         case Tile.TileType.WATER:
-                            _lands[x, y] = new Water(this, _map[x, y]);
+                            _lands[x, y] = new Water(this, _map[x, y], seed);
                             break;
                         
                         case Tile.TileType.FOREST:
-                            _lands[x, y] = new Forest(this, _map[x, y]);
+                            _lands[x, y] = new Forest(this, _map[x, y], seed);
                             break;
                         
                         case Tile.TileType.MOUNTAIN:
-                            _lands[x, y] = new Mountain(this, _map[x, y]);
+                            _lands[x, y] = new Mountain(this, _map[x, y], seed);
                             break;
 
                         default:
-                            _lands[x, y] = new Coast(this, _map[x, y]);
+                            _lands[x, y] = new Coast(this, _map[x, y], seed);
                             break;
                     }
-                    
+                    _lands[x, y].Smooth();
                 }
             }
         }
 
-        private Orientation GetCoastOrientation(int x, int y)
+        private Orientation getCoastOrientation(int x, int y)
         {
-            bool waterOnTop = y + 1 < Config.MapHeight && _map[x, y + 1].Type == Tile.TileType.WATER;
+            bool waterOnTop = y + 1 < _mapHeight && _map[x, y + 1].Type == Tile.TileType.WATER;
             bool waterOnBottom = y - 1 >= 0 && _map[x, y - 1].Type == Tile.TileType.WATER;
             bool waterOnLeft = x - 1 >= 0 && _map[x - 1, y].Type == Tile.TileType.WATER;
-            bool waterOnRight = x + 1 < Config.MapWidth && _map[x + 1, y].Type == Tile.TileType.WATER;
+            bool waterOnRight = x + 1 < _mapWidth && _map[x + 1, y].Type == Tile.TileType.WATER;
 
             if (waterOnBottom && waterOnTop)
             {
-                return waterOnRight ? Orientation.RIGHT : (waterOnLeft ? Orientation.LEFT : Orientation.DEFAULT);
+                return waterOnRight ? Orientation.Right : (waterOnLeft ? Orientation.Left : Orientation.Default);
             }
 
             if (waterOnRight && waterOnLeft)
             {
-                return waterOnTop ? Orientation.TOP : (waterOnBottom ? Orientation.BOTTOM : Orientation.DEFAULT);
+                return waterOnTop ? Orientation.Top : (waterOnBottom ? Orientation.Bottom : Orientation.Default);
             }
 
             if (waterOnTop)
             {
                 return waterOnRight
-                    ? Orientation.TOP_RIGHT
-                    : (waterOnLeft ? Orientation.TOP_LEFT : Orientation.TOP);
+                    ? Orientation.TopRight
+                    : (waterOnLeft ? Orientation.TopLeft : Orientation.Top);
             }
 
             if (waterOnBottom)
             {
                 return waterOnRight
-                    ? Orientation.BOTTOM_RIGHT
-                    : (waterOnLeft ? Orientation.BOTTOM_LEFT : Orientation.BOTTOM);
+                    ? Orientation.BottomRight
+                    : (waterOnLeft ? Orientation.BottomLeft : Orientation.Bottom);
             }
 
-            return waterOnLeft ? Orientation.LEFT : (waterOnRight ? Orientation.RIGHT : Orientation.DEFAULT);
+            return waterOnLeft ? Orientation.Left : (waterOnRight ? Orientation.Right : Orientation.Default);
         }
 
-        private bool IsCoastEnd(int x, int y)
+        private bool isCoastEnd(int x, int y)
         {
             int trueConditionCount = 0;
-            trueConditionCount += (y + 1 < Config.MapHeight && _map[x, y + 1].Type == Tile.TileType.WATER) ? 1 : 0;
+            trueConditionCount += (y + 1 < _mapHeight && _map[x, y + 1].Type == Tile.TileType.WATER) ? 1 : 0;
             trueConditionCount += (y - 1 >= 0 && _map[x, y - 1].Type == Tile.TileType.WATER) ? 1 : 0;
             trueConditionCount += (x - 1 >= 0 && _map[x - 1, y].Type == Tile.TileType.WATER) ? 1 : 0;
-            trueConditionCount += (x + 1 < Config.MapWidth && _map[x + 1, y].Type == Tile.TileType.WATER) ? 1 : 0;
+            trueConditionCount += (x + 1 < _mapWidth && _map[x + 1, y].Type == Tile.TileType.WATER) ? 1 : 0;
 
             return trueConditionCount > 2;
         }
 
         public enum Orientation
         {
-            DEFAULT,
-            TOP,
-            BOTTOM,
-            LEFT,
-            RIGHT,
-            TOP_LEFT,
-            TOP_RIGHT,
-            BOTTOM_LEFT,
-            BOTTOM_RIGHT
+            Default,
+            Top,
+            Bottom,
+            Left,
+            Right,
+            TopLeft,
+            TopRight,
+            BottomLeft,
+            BottomRight
         }
     }
 }

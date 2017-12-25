@@ -5,6 +5,9 @@ namespace Assets.Scripts.Models
 {
     public class View
     {
+        public const int VIEW_WIDTH = 50;
+        public const int VIEW_HEIGHT = 25;
+
         public Vector2 Origin { get; private set; }
 
         private readonly Tile[,] _viewField;
@@ -12,34 +15,35 @@ namespace Assets.Scripts.Models
 
         public View(Map map)
         {
-            _viewField = new Tile[Config.ViewWidth, Config.ViewHeight];
+            _viewField = new Tile[VIEW_WIDTH, VIEW_HEIGHT];
             Origin = Vector2.zero;
             _map = map;
 
-            UpdateView();
+            updateView();
         }
 
-        public Tile[,] GetView()
+        public Tile GetTile(int x, int y)
         {
-            return _viewField;
+            //Todo: Secure
+            return _viewField[x,y];
         }
 
         public void SetOrigin(Vector2 origin)
         {
             Origin = origin;
-            UpdateView();
+            updateView();
         }
 
-        private void UpdateView()
+        private void updateView()
         {
-            for (int x = 0; x < Config.ViewWidth; x++)
+            for (int x = 0; x < VIEW_WIDTH; x++)
             {
-                for (int y = 0; y < Config.ViewHeight; y++)
+                for (int y = 0; y < VIEW_HEIGHT; y++)
                 {
                     Vector2 tilePosition = new Vector2(Origin.x + x, Origin.y + y);
                     Vector2 landPiecePosition = new Vector2((Origin.x + x) % 10, (Origin.y + y) % 10);
 
-                    Tile tile = Config.ViewMode == ViewMode.LAND
+                    Tile tile = Game.ViewMode == ViewMode.LAND
                         ? _map.GetLand((int)tilePosition.x / 10, (int)tilePosition.y / 10)
                             .GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y)
                         : _map.GetTile((int)tilePosition.x, (int)tilePosition.y);

@@ -33,9 +33,6 @@ namespace Assets.Scripts.Tools
             int width = lines[0].Split(' ').Length;
             int height = lines.Length;
 
-            Config.MapHeight = height;
-            Config.MapWidth = width;
-
             Tile[,] map = new Tile[width, height];
 
             for (int y = 0; y < height; y++)
