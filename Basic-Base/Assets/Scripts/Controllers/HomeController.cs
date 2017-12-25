@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts.Controllers
 {
+    /// <summary>
+    /// Class that manages the game menu
+    /// </summary>
     public class HomeController : MonoBehaviour
     {
         public GameObject HomeGroup;
@@ -54,6 +57,7 @@ namespace Assets.Scripts.Controllers
 
             _previousSeed = DateTime.UtcNow.ToString();
 
+            //Set the camera
             Camera.main.transform.position = new Vector3(25, 12.5f, -3);
             Camera.main.orthographicSize = 9;
 
@@ -61,22 +65,36 @@ namespace Assets.Scripts.Controllers
             _gameConfig.Seed = new System.Random(_previousSeed.GetHashCode());
         }
 
+        /// <summary>
+        /// Gets the game configuration edited by the user. 
+        /// </summary>
+        /// <returns>The game configuration edited by the user.</returns>
         public static Config GetConfig()
         {
             return _gameConfig;
         }
 
+        /// <summary>
+        /// Loads the game scene
+        /// </summary>
         public void StartGame()
         {
             SceneManager.LoadScene("main");
         }
 
+        /// <summary>
+        /// Renders the options menu
+        /// </summary>
         public void DisplayOptions()
         {
             HomeGroup.SetActive(false);
             OptionsGroup.SetActive(true);
         }
 
+        /// <summary>
+        /// Reverts the configuration values entered by the user.
+        /// </summary>
+        /// <param name="gameConfig">The game configuration. </param>
         public void CancelOption(Config gameConfig)
         {
             HeightInput.GetComponent<InputField>().text = gameConfig.MapHeight.ToString();
@@ -91,6 +109,10 @@ namespace Assets.Scripts.Controllers
             OptionsGroup.SetActive(false);
         }
 
+        /// <summary>
+        /// Saves the configuration values entered by the user.
+        /// </summary>
+        /// <param name="gameConfig">The game configuration. </param>
         public void SaveOption(Config gameConfig)
         {
             string seed = UseRandomInput.GetComponent<Toggle>().isOn 
@@ -109,21 +131,33 @@ namespace Assets.Scripts.Controllers
             OptionsGroup.SetActive(false);
         }
 
+        /// <summary>
+        /// Updates the forest parameter text.
+        /// </summary>
         public void UpdateForestText()
         {
-            UpdateSelectionText(ForestInput, SelectedForest);
+            updateSelectionText(ForestInput, SelectedForest);
         }
 
+        /// <summary>
+        /// Updates the mountain parameter text.
+        /// </summary>
         public void UpdateMountainText()
         {
-            UpdateSelectionText(MountainInput, SelectedMountain);
+            updateSelectionText(MountainInput, SelectedMountain);
         }
 
+        /// <summary>
+        /// Updates the coast parameter text.
+        /// </summary>
         public void UpdateCoastText()
         {
-            UpdateSelectionText(CoastInput, SelectedCoast);
+            updateSelectionText(CoastInput, SelectedCoast);
         }
 
+        /// <summary>
+        /// Updates the land parameter text.
+        /// </summary>
         public void UpdateLandText()
         {
             int value = (int)LandInput.GetComponent<Slider>().value;
@@ -151,7 +185,12 @@ namespace Assets.Scripts.Controllers
             SelectedLand.GetComponent<Text>().text = text;
         }
 
-        private void UpdateSelectionText(GameObject slider, GameObject selection)
+        /// <summary>
+        /// Sets the text of an input given its value
+        /// </summary>
+        /// <param name="slider">The input. </param>
+        /// <param name="selection">The input text. </param>
+        private void updateSelectionText(GameObject slider, GameObject selection)
         {
             int value = (int)slider.GetComponent<Slider>().value;
             string text = "ERROR";
@@ -178,6 +217,10 @@ namespace Assets.Scripts.Controllers
             selection.GetComponent<Text>().text = text;
         }
 
+        /// <summary>
+        /// Creates the background map.
+        /// </summary>
+        /// <param name="gameConfig">The game configuration. </param>
         private void loadMap(Config gameConfig)
         {
             gameConfig.MapHeight = View.VIEW_HEIGHT;
@@ -191,6 +234,7 @@ namespace Assets.Scripts.Controllers
 
             _map = new Map(gameConfig);
 
+            //Remove the background parameters
             CancelOption(gameConfig);
         }
     }

@@ -13,7 +13,6 @@ namespace Assets.Scripts.Models.Mapping
         {
             _sandThickness = seed.Next(1, 3);
             Generate(seed);
-            //Smooth();
         }
 
         protected sealed override void Generate(Random random)

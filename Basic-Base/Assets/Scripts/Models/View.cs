@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Models.Mapping;
+﻿using System;
+using Assets.Scripts.Models.Mapping;
 using UnityEngine;
 
 namespace Assets.Scripts.Models
@@ -24,14 +25,35 @@ namespace Assets.Scripts.Models
 
         public Tile GetTile(int x, int y)
         {
-            //Todo: Secure
-            return _viewField[x,y];
+            if (0 <= x && x < VIEW_WIDTH && y >= 0 && y < VIEW_HEIGHT)
+            {
+                return _viewField[x, y];
+            }
+
+            return null;
         }
 
         public void SetOrigin(Vector2 origin)
         {
-            Origin = origin;
-            updateView();
+            bool bottomLeftIsValid = _map.IsPositionValid((int) origin.x, (int) origin.y);
+            bool topRightIsValid = _map.IsPositionValid((int)origin.x + VIEW_WIDTH - 1, (int)origin.y + VIEW_HEIGHT - 1);
+
+            bool mapViewIsValid = bottomLeftIsValid && topRightIsValid;
+
+            bottomLeftIsValid = _map.IsPositionValid((int)(origin.x/10) , (int)(origin.y/10));
+            topRightIsValid = _map.IsPositionValid((int)((origin.x+VIEW_WIDTH - 1) /10), (int)((origin.y + VIEW_HEIGHT - 1) /10));
+
+            bool landViewIsValid = bottomLeftIsValid && topRightIsValid;
+
+            if (mapViewIsValid || landViewIsValid)
+            {
+                Origin = origin;
+                updateView();
+            }
+            else
+            {
+                throw new ArgumentException("Invalid view origin : " + origin);
+            }
         }
 
         private void updateView()

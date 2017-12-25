@@ -8,6 +8,8 @@ namespace Assets.Scripts.Models.Entities
 
         public string Name { get; set; }
 
+        public string Sprite { get; set; }
+
         public Vector3 Position { get; set; }
 
         public bool Selected { get; set; }

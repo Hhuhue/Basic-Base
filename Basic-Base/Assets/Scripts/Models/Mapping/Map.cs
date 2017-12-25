@@ -30,7 +30,6 @@ namespace Assets.Scripts.Models.Mapping
             generateResource(configuration.Seed, configuration.ForestRatio, Tile.TileType.FOREST);
             generateResource(configuration.Seed, configuration.MountainRatio, Tile.TileType.MOUNTAIN);
             generateResource(configuration.Seed, configuration.CoastRatio, Tile.TileType.COAST);
-            //generateLands(configuration.Seed);
         }
 
         /// <summary>
@@ -39,7 +38,35 @@ namespace Assets.Scripts.Models.Mapping
         /// <param name="seed"></param>
         public void GenerateLands(Random seed)
         {
-            generateLands(seed);
+            for (int x = 0; x < _mapWidth; x++)
+            {
+                for (int y = 0; y < _mapHeight; y++)
+                {
+                    switch (_map[x, y].GetGlobalType())
+                    {
+                        case Tile.TileType.PLAIN:
+                            _lands[x, y] = new Plain(this, _map[x, y], seed);
+                            break;
+
+                        case Tile.TileType.WATER:
+                            _lands[x, y] = new Water(this, _map[x, y], seed);
+                            break;
+
+                        case Tile.TileType.FOREST:
+                            _lands[x, y] = new Forest(this, _map[x, y], seed);
+                            break;
+
+                        case Tile.TileType.MOUNTAIN:
+                            _lands[x, y] = new Mountain(this, _map[x, y], seed);
+                            break;
+
+                        default:
+                            _lands[x, y] = new Coast(this, _map[x, y], seed);
+                            break;
+                    }
+                    _lands[x, y].Smooth();
+                }
+            }
         }
 
         /// <summary>
@@ -92,6 +119,7 @@ namespace Assets.Scripts.Models.Mapping
                    orientation == Orientation.TopRight;
         }
 
+        //Todo: Transfert to game class 
         public void SaveMap()
         {
             SaveManager.Save(_map, _mapHeight, _mapWidth);
@@ -174,39 +202,6 @@ namespace Assets.Scripts.Models.Mapping
                     {
                         _map[x, y].Icon = (number < ratio) ? resource : _map[x, y].Icon;
                     }
-                }
-            }
-        }
-
-        private void generateLands(Random seed)
-        {
-            for (int x = 0; x < _mapWidth; x++)
-            {
-                for (int y = 0; y < _mapHeight; y++)
-                {
-                    switch (_map[x,y].GetGlobalType())
-                    {
-                        case Tile.TileType.PLAIN:
-                            _lands[x, y] = new Plain(this, _map[x, y], seed);
-                            break;
-
-                        case Tile.TileType.WATER:
-                            _lands[x, y] = new Water(this, _map[x, y], seed);
-                            break;
-                        
-                        case Tile.TileType.FOREST:
-                            _lands[x, y] = new Forest(this, _map[x, y], seed);
-                            break;
-                        
-                        case Tile.TileType.MOUNTAIN:
-                            _lands[x, y] = new Mountain(this, _map[x, y], seed);
-                            break;
-
-                        default:
-                            _lands[x, y] = new Coast(this, _map[x, y], seed);
-                            break;
-                    }
-                    _lands[x, y].Smooth();
                 }
             }
         }

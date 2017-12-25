@@ -12,7 +12,6 @@ namespace Assets.Scripts.Models.Mapping
         public Forest(Map map, Tile tile, Random seed) : base(map, tile)
         {
             Generate(seed);
-            //Smooth();
         }
 
         protected sealed override void Generate(Random random)

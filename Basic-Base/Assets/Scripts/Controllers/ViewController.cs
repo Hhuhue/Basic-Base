@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Assets.Scripts.Models;
 using Assets.Scripts.Models.Mapping;
 using Assets.Scripts.Tools;
@@ -7,6 +8,9 @@ using UnityEngine.UI;
 
 namespace Assets.Scripts.Controllers
 {
+    /// <summary>
+    /// Class managing the view
+    /// </summary>
     public class ViewController : MonoBehaviour
     {
         public GameObject EntityContainer { get; set; }
@@ -17,20 +21,24 @@ namespace Assets.Scripts.Controllers
         private Game _game;
         private int _mapHeight;
         private int _mapWidth;
+        
+        private bool _updateView;
 
         void Start()
         {
             _game = GameProvider.Game();
 
-            var dimentions = _game.GetMapDimentions();
+            Dictionary<string, int> dimentions = _game.GetMapDimentions();
             _mapHeight = dimentions["Height"];
             _mapWidth = dimentions["Width"];
 
+            //Initialize the tile selector
             setSelector();
 
             MapButton.GetComponent<Button>().onClick.AddListener(LoadMap);
             _children = new GameObject[View.VIEW_WIDTH, View.VIEW_HEIGHT];
 
+            //Create and place the view tiles
             for (int x = 0; x < View.VIEW_WIDTH; x++)
             {
                 for (int y = 0; y < View.VIEW_HEIGHT; y++)
@@ -51,71 +59,73 @@ namespace Assets.Scripts.Controllers
 
         void Update()
         {
+            //Check if the user tries to move
             if (!Input.anyKey) return;
 
+            //Get the camera state
             Camera mainCamera = Camera.main;
             Vector3 cameraPosition = mainCamera.transform.position;
             float cameraSize = mainCamera.orthographicSize;
 
-            CameraBorderState borderState = getCameraBorderState(cameraPosition, cameraSize);
+            //Get the borders of the camera
+            BorderState viewState = getViewBorderState(cameraPosition, cameraSize);
 
-            if (!borderState.AnyBorderReached) return;
-
-            bool originChanged = false;
-            int viewModeScale = (Game.ViewMode == View.ViewMode.MAP) ? 1 : 10;
-
-            Vector2 relativeOrigin = _game.GetViewOrigin();
-            Vector3 cameraMove = Vector3.zero;
-
-            float originXLimit = _mapWidth * viewModeScale - View.VIEW_WIDTH;
-            float originYLimit = _mapHeight * viewModeScale - View.VIEW_HEIGHT;
-
-            CameraEndState endState = getCameraEndState(borderState, relativeOrigin, originXLimit, originYLimit);
-
-            float jumpSizeX = View.VIEW_WIDTH - 1 - cameraSize * 4;
-            if (Input.GetKey(KeyCode.A) && borderState.LeftBorderReached && !endState.LeftEndReached)
+            //Check if the view could have to change
+            if (viewState.AnyBorderReached())
             {
-                originChanged = true;
-                if (relativeOrigin.x - jumpSizeX < 0) jumpSizeX = relativeOrigin.x;
+                //Assume that the view don't need to change
+                _updateView = false;
 
-                cameraMove.x = jumpSizeX;
-                relativeOrigin.x -= jumpSizeX;
+                //Scale the map limits according to the view mode
+                int viewModeScale = (Game.ViewMode == View.ViewMode.MAP) ? 1 : 10;
+
+                Vector2 viewRelativeOrigin = _game.GetViewOrigin();
+                Vector3 cameraMove = Vector3.zero;
+
+                //Define the view's origin coordinates max values
+                float originXLimit = _mapWidth * viewModeScale - View.VIEW_WIDTH;
+                float originYLimit = _mapHeight * viewModeScale - View.VIEW_HEIGHT;
+
+                //Check if any map border is reached
+                BorderState mapState = getMapBorderState(viewState, viewRelativeOrigin, originXLimit, originYLimit);
+
+                //Set the camera position modification in X
+                float jumpSize = View.VIEW_WIDTH - 1 - cameraSize * 4;
+                float jumpValue = getViewModifications(KeyCode.A, viewState, mapState, -jumpSize, viewRelativeOrigin.x, 0);
+
+                if (jumpValue == 0)
+                {
+                    jumpValue = getViewModifications(KeyCode.D, viewState, mapState, jumpSize, viewRelativeOrigin.x, originXLimit);
+                }
+
+                if (jumpValue != 0)
+                {
+                    cameraMove.x = -jumpValue;
+                    viewRelativeOrigin.x += jumpValue;
+                }
+
+                jumpSize = View.VIEW_HEIGHT - 1 - cameraSize * 2;
+                jumpValue = getViewModifications(KeyCode.S, viewState, mapState, -jumpSize, viewRelativeOrigin.y, 0);
+
+                if (jumpValue == 0)
+                {
+                    jumpValue = getViewModifications(KeyCode.W, viewState, mapState, jumpSize, viewRelativeOrigin.y, originYLimit);
+                }
+
+                if (jumpValue != 0)
+                {
+                    cameraMove.y = -jumpValue;
+                    viewRelativeOrigin.y += jumpValue;
+                }
+
+                if (!_updateView) return;
+
+                mainCamera.transform.position += cameraMove;
+                _game.SetViewOrigin(viewRelativeOrigin);
+
+                updateView();
+                updateEntities(cameraMove);
             }
-            else if (Input.GetKey(KeyCode.D) && borderState.RightBorderReached && !endState.RightEndReached)
-            {
-                originChanged = true;
-                if (relativeOrigin.x + jumpSizeX > originXLimit)
-                    jumpSizeX = originXLimit - relativeOrigin.x;
-
-                cameraMove.x = -jumpSizeX;
-                relativeOrigin.x += jumpSizeX;
-            }
-
-            float jumpSizeY = View.VIEW_HEIGHT - 1 - cameraSize * 2;
-            if (Input.GetKey(KeyCode.S) && borderState.BottomBorderReached && !endState.BottomEndReached)
-            {
-                originChanged = true;
-                if (relativeOrigin.y - jumpSizeY < 0)
-                    jumpSizeY = relativeOrigin.y;
-
-                cameraMove.y = jumpSizeY;
-                relativeOrigin.y -= jumpSizeY;
-            }
-            else if (Input.GetKey(KeyCode.W) && borderState.TopBorderReached && !endState.TopEndReached)
-            {
-                originChanged = true;
-                if (relativeOrigin.y + cameraSize + jumpSizeY > originYLimit)
-                    jumpSizeY = originYLimit - relativeOrigin.y;
-
-                cameraMove.y = -jumpSizeY;
-                relativeOrigin.y += jumpSizeY;
-            } 
-
-            if (!originChanged) return;
-            mainCamera.transform.position += cameraMove;
-            _game.SetViewOrigin(relativeOrigin);
-            updateView();
-            updateEntities(cameraMove);
         }
 
         public void LoadTile(Tile tile)
@@ -127,7 +137,7 @@ namespace Assets.Scripts.Controllers
             Game.ViewMode = View.ViewMode.LAND;
 
             Vector2 viewCenter = new Vector2((float)Math.Truncate((float)View.VIEW_WIDTH / 2), (float)Math.Truncate((float)View.VIEW_HEIGHT / 2));
-            Vector2 newOrigin = new Vector2((int) tile.Position.x, (int) tile.Position.y) * 10 - viewCenter;
+            Vector2 newOrigin = new Vector2((int)tile.Position.x, (int)tile.Position.y) * 10 - viewCenter;
             _game.SetViewOrigin(newOrigin);
 
             Camera.main.transform.position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, -5);
@@ -165,16 +175,16 @@ namespace Assets.Scripts.Controllers
 
             Vector2 focusedLandPiecePosition = _game.GetViewOrigin() + viewCenter;
             Vector2 scaledPosition = focusedLandPiecePosition / 10;
-            Vector2 scaledOrigin = scaledPosition - viewCenter;        
+            Vector2 scaledOrigin = scaledPosition - viewCenter;
 
-            scaledOrigin.x = (scaledOrigin.x > maxViewXPosition) ? maxViewXPosition : (scaledOrigin.x < 0) ? 0 : scaledOrigin.x; 
+            scaledOrigin.x = (scaledOrigin.x > maxViewXPosition) ? maxViewXPosition : (scaledOrigin.x < 0) ? 0 : scaledOrigin.x;
             scaledOrigin.y = (scaledOrigin.y > maxViewYPosition) ? maxViewYPosition : (scaledOrigin.y < 0) ? 0 : scaledOrigin.y;
 
             Debug.Log("Focus: " + focusedLandPiecePosition.ToString() + ", Scaled focus: " + scaledPosition.ToString() + ", Scaled origin: " + scaledOrigin.ToString());
 
             _game.SetViewOrigin(scaledOrigin);
             Camera.main.transform.position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, -5);
-        
+
             EntityContainer.SetActive(false);
 
             updateView();
@@ -211,9 +221,9 @@ namespace Assets.Scripts.Controllers
             }
         }
 
-        private CameraBorderState getCameraBorderState(Vector3 cameraPosition, float cameraSize)
+        private BorderState getViewBorderState(Vector3 cameraPosition, float cameraSize)
         {
-            return new CameraBorderState
+            return new BorderState
             {
                 LeftBorderReached = cameraPosition.x - cameraSize * 2 <= 1,
                 RightBorderReached = cameraPosition.x + cameraSize * 2 >= View.VIEW_WIDTH,
@@ -222,18 +232,43 @@ namespace Assets.Scripts.Controllers
             };
         }
 
-        private CameraEndState getCameraEndState(CameraBorderState borderState, Vector2 relativeOrigin, float xLimit, float yLimit)
+        private BorderState getMapBorderState(BorderState borderState, Vector2 viewRelativeOrigin, float xLimit, float yLimit)
         {
-            return new CameraEndState
+            return new BorderState
             {
-                LeftEndReached = borderState.LeftBorderReached && relativeOrigin.x <= 0,
-                RightEndReached = borderState.RightBorderReached && relativeOrigin.x >= xLimit,
-                BottomEndReached = borderState.BottomBorderReached && relativeOrigin.y <= 0,
-                TopEndReached = borderState.TopBorderReached && relativeOrigin.y >= yLimit
+                LeftBorderReached = borderState.LeftBorderReached && viewRelativeOrigin.x <= 0,
+                RightBorderReached = borderState.RightBorderReached && viewRelativeOrigin.x >= xLimit,
+                BottomBorderReached = borderState.BottomBorderReached && viewRelativeOrigin.y <= 0,
+                TopBorderReached = borderState.TopBorderReached && viewRelativeOrigin.y >= yLimit
             };
         }
 
-        private struct CameraBorderState
+        private float getViewModifications(KeyCode key, BorderState viewState, BorderState mapState, float moveValue, float relativeOriginCoordinate, float maxValue)
+        {
+            //If the camera reached a side of the view and if the end of the map of the same side isn't reached
+            if (Input.GetKey(key) && viewState.BorderStateFromKey(key) && !mapState.BorderStateFromKey(key))
+            {
+                //The origin has to be updated
+                _updateView = true;
+
+                int direction = (moveValue < 0) ? -1 : 1;
+
+                //Adjust the modification if we are reaching the an end of the map 
+                if (relativeOriginCoordinate * direction + moveValue * direction > maxValue)
+                {
+                    moveValue = (maxValue - relativeOriginCoordinate * direction) * direction;
+                }
+
+                return moveValue;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Structure telling which view border is reached by the camera
+        /// </summary>
+        private struct BorderState
         {
             public bool LeftBorderReached { get; set; }
 
@@ -243,25 +278,26 @@ namespace Assets.Scripts.Controllers
 
             public bool TopBorderReached { get; set; }
 
-            public bool AnyBorderReached
+            public bool AnyBorderReached()
             {
-                get
+                return LeftBorderReached || RightBorderReached || BottomBorderReached || TopBorderReached;
+            }
+
+            public bool BorderStateFromKey(KeyCode key)
+            {
+                switch (key)
                 {
-                    return LeftBorderReached || RightBorderReached
-                           || BottomBorderReached || TopBorderReached;
+                    case KeyCode.A: return LeftBorderReached;
+
+                    case KeyCode.D: return RightBorderReached;
+
+                    case KeyCode.W: return TopBorderReached;
+
+                    case KeyCode.S: return BottomBorderReached;
+
+                    default: return false;
                 }
             }
-        }
-
-        private struct CameraEndState
-        {
-            public bool LeftEndReached { get; set; }
-
-            public bool RightEndReached { get; set; }
-
-            public bool BottomEndReached { get; set; }
-
-            public bool TopEndReached { get; set; }
         }
     }
 }

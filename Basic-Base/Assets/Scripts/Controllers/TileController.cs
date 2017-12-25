@@ -6,6 +6,9 @@ using TileType = Assets.Scripts.Models.Mapping.Tile.TileType;
 
 namespace Assets.Scripts.Controllers
 {
+    /// <summary>
+    /// Class managing a tile of the view 
+    /// </summary>
     public class TileController : MonoBehaviour
     {
         private Tile _tile;
@@ -41,12 +44,21 @@ namespace Assets.Scripts.Controllers
             if (Game.ViewMode == View.ViewMode.LAND) displayPosition(false);
         }
 
+        /// <summary>
+        /// Sets the position of the tile.
+        /// </summary>
+        /// <param name="x">The x coordinate. </param>
+        /// <param name="y">The y coordinate. </param>
         public void SetPosition(int x, int y)
         {
             _xPosition = x;
             _yPosition = y;
         }
 
+        /// <summary>
+        /// Sets the model of the tile.
+        /// </summary>
+        /// <param name="tile">The tile model. </param>
         public void SetTile(Tile tile)
         {
             _tile = tile;
@@ -58,6 +70,11 @@ namespace Assets.Scripts.Controllers
             setIcon(tile);
         }
 
+        /// <summary>
+        /// Gives a vector for an orientation value.
+        /// </summary>
+        /// <param name="orientation">The orientation value. </param>
+        /// <returns>A vector for the orientation value. </returns>
         public static Vector3 OrientationToVector(Orientation orientation)
         {
             switch (orientation)
@@ -79,6 +96,10 @@ namespace Assets.Scripts.Controllers
             }
         }
 
+        /// <summary>
+        /// Sets the icon of the tile.
+        /// </summary>
+        /// <param name="tile">The tile model. </param>
         private void setIcon(Tile tile)
         {
             string iconPath = tile.Icon == TileType.DEFAULT ? "" : tile.Icon.ToString().ToLower();
@@ -89,6 +110,10 @@ namespace Assets.Scripts.Controllers
             _icon.transform.localEulerAngles = OrientationToVector(tile.Orientation);
         }
 
+        /// <summary>
+        /// Toggles the map position of the tile.
+        /// </summary>
+        /// <param name="display">Whether to hide or show the position. </param>
         private void displayPosition(bool display)
         {
             if (_textMesh == null)

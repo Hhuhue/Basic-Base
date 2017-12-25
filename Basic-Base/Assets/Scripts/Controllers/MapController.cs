@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Assets.Scripts.Controllers
 {
+    /// <summary>
+    /// Class initializing the map
+    /// </summary>
     public class MapController : MonoBehaviour
     {
         public bool UseMenuConfig;
@@ -30,8 +33,6 @@ namespace Assets.Scripts.Controllers
         public GameObject EntityContainer;
         public GameObject MapButton;
 
-        private Game _game;
-
         void Start()
         {
             loadMap(HomeController.GetConfig() ?? new Config());
@@ -43,15 +44,14 @@ namespace Assets.Scripts.Controllers
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
+                //Todo: Change save mechanic
                 //_map.SaveMap();
             }
         }
 
-        public Map GetMap()
-        {
-            return new Map(new Config());
-        }
-
+        /// <summary>
+        /// Sets the view controller
+        /// </summary>
         private void setViewManager()
         {
             ViewController controller = gameObject.AddComponent<ViewController>();
@@ -59,6 +59,10 @@ namespace Assets.Scripts.Controllers
             controller.MapButton = MapButton;
         }
     
+        /// <summary>
+        /// Initializes the game
+        /// </summary>
+        /// <param name="menuConfig">The game configuration. </param>
         private void loadMap(Config menuConfig)
         {
             if (!UseMenuConfig)
@@ -76,9 +80,11 @@ namespace Assets.Scripts.Controllers
             }
 
             GameProvider.Initialize(menuConfig);
-            _game = GameProvider.Game();
         }
 
+        /// <summary>
+        /// Sets the camera positions
+        /// </summary>
         private void setCamera()
         {
             Vector3 cameraPosition = new Vector3((float)View.VIEW_WIDTH / 2 + 0.5f, (float)View.VIEW_HEIGHT / 2 + 0.5f, -5);

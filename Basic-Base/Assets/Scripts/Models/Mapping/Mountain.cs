@@ -9,7 +9,6 @@ namespace Assets.Scripts.Models.Mapping
         public Mountain(Map map, Tile tile, Random seed) : base(map, tile)
         {
             Generate(seed);
-            //Smooth();
         }
 
         public sealed override void Smooth()
