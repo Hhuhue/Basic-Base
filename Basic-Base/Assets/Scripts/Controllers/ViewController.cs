@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Assets.Scripts.Models;
 using Assets.Scripts.Models.Mapping;
+using Assets.Scripts.Models.Observers;
 using Assets.Scripts.Tools;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +12,7 @@ namespace Assets.Scripts.Controllers
     /// <summary>
     /// Class managing the view
     /// </summary>
-    public class ViewController : MonoBehaviour
+    public class ViewController : MonoBehaviour, IViewObserver
     {
         public GameObject EntityContainer { get; set; }
         public GameObject MapButton { get; set; }
@@ -55,6 +56,8 @@ namespace Assets.Scripts.Controllers
                     _children[x, y] = tileObject;
                 }
             }
+
+            _game.SetViewObserver(this);
         }
 
         void Update()
@@ -77,7 +80,7 @@ namespace Assets.Scripts.Controllers
                 _updateView = false;
 
                 //Scale the map limits according to the view mode
-                int viewModeScale = (Game.ViewMode == View.ViewMode.MAP) ? 1 : 10;
+                int viewModeScale = (_game.GetViewMode() == View.ViewMode.MAP) ? 1 : 10;
 
                 Vector2 viewRelativeOrigin = _game.GetViewOrigin();
                 Vector3 cameraMove = Vector3.zero;
@@ -123,71 +126,41 @@ namespace Assets.Scripts.Controllers
                 mainCamera.transform.position += cameraMove;
                 _game.SetViewOrigin(viewRelativeOrigin);
 
-                updateView();
                 updateEntities(cameraMove);
             }
         }
 
-        public void LoadTile(Tile tile)
-        {
-            if (Game.ViewMode == View.ViewMode.LAND) return;
-
-            _selectorRenderer.enabled = false;
-
-            Game.ViewMode = View.ViewMode.LAND;
-
-            Vector2 viewCenter = new Vector2((float)Math.Truncate((float)View.VIEW_WIDTH / 2), (float)Math.Truncate((float)View.VIEW_HEIGHT / 2));
-            Vector2 newOrigin = new Vector2((int)tile.Position.x, (int)tile.Position.y) * 10 - viewCenter;
-            _game.SetViewOrigin(newOrigin);
-
-            Camera.main.transform.position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, -5);
-
-            //Todo: to remove
-            Vector3 position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, 2.5f);
-            GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
-            person.transform.position = position;
-            person.transform.parent = EntityContainer.transform;
-
-            EntityContainer.SetActive(true);
-
-            updateView();
-        }
-
-        public void SelectTile(int xPosition, int yPosition)
-        {
-            if (Game.ViewMode == View.ViewMode.LAND) return;
-            Vector3 position = new Vector3(xPosition + 0.5f, yPosition + 0.5f, 1);
-
-            _selectorRenderer.enabled = true;
-            _selectorRenderer.transform.position = position;
-        }
-
         public void LoadMap()
         {
-            if (Game.ViewMode == View.ViewMode.MAP) return;
-            _selectorRenderer.enabled = true;
+            _game.ChangeViewMode(View.ViewMode.MAP);
+        }
+        
+        public void SelectTile(int xPosition, int yPosition)
+        {
+            if (_game.GetViewMode() == View.ViewMode.MAP)
+            {
+                Vector3 position = new Vector3(xPosition + 0.5f, yPosition + 0.5f, 1);
 
-            int maxViewXPosition = _mapWidth - View.VIEW_WIDTH;
-            int maxViewYPosition = _mapHeight - View.VIEW_HEIGHT;
+                _selectorRenderer.enabled = true;
+                _selectorRenderer.transform.position = position;
+            }
+        }
 
-            Game.ViewMode = View.ViewMode.MAP;
-            Vector2 viewCenter = new Vector2(View.VIEW_WIDTH / 2, View.VIEW_HEIGHT / 2);
+        public void TileChanged(int positionX, int positionY)
+        {
+            TileController tile = _children[positionX, positionY].GetComponent<TileController>();
+            tile.SetTile(_game.GetViewTile(positionX, positionY));
+        }
 
-            Vector2 focusedLandPiecePosition = _game.GetViewOrigin() + viewCenter;
-            Vector2 scaledPosition = focusedLandPiecePosition / 10;
-            Vector2 scaledOrigin = scaledPosition - viewCenter;
+        /// <summary>
+        /// Shows or hides the tile selector
+        /// </summary>
+        /// <param name="enabled">Wheter or not the selector should be shown. </param>
+        public void ToggleTileSelector(bool enabled)
+        {
+            _selectorRenderer.enabled = enabled;
 
-            scaledOrigin.x = (scaledOrigin.x > maxViewXPosition) ? maxViewXPosition : (scaledOrigin.x < 0) ? 0 : scaledOrigin.x;
-            scaledOrigin.y = (scaledOrigin.y > maxViewYPosition) ? maxViewYPosition : (scaledOrigin.y < 0) ? 0 : scaledOrigin.y;
-
-            Debug.Log("Focus: " + focusedLandPiecePosition.ToString() + ", Scaled focus: " + scaledPosition.ToString() + ", Scaled origin: " + scaledOrigin.ToString());
-
-            _game.SetViewOrigin(scaledOrigin);
-            Camera.main.transform.position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, -5);
-
-            EntityContainer.SetActive(false);
-
-            updateView();
+            EntityContainer.SetActive(!enabled);
         }
 
         private void setSelector()
@@ -198,18 +171,6 @@ namespace Assets.Scripts.Controllers
             _selectorRenderer = selector.AddComponent<SpriteRenderer>();
             _selectorRenderer.sprite = Resources.Load<Sprite>(Game.SpritesPath + "selection");
             _selectorRenderer.enabled = false;
-        }
-
-        private void updateView()
-        {
-            for (int x = 0; x < View.VIEW_WIDTH; x++)
-            {
-                for (int y = 0; y < View.VIEW_HEIGHT; y++)
-                {
-                    TileController tile = _children[x, y].GetComponent<TileController>();
-                    tile.SetTile(_game.GetViewTile(x, y));
-                }
-            }
         }
 
         private void updateEntities(Vector2 move)

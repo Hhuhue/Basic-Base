@@ -17,6 +17,32 @@ namespace Assets.Scripts.Models.Mapping
             return Icon == TileType.DEFAULT ? Type : Icon;
         }
 
+        /// <summary>
+        /// Gives a vector for an orientation value.
+        /// </summary>
+        /// <param name="orientation">The orientation value. </param>
+        /// <returns>A vector for the orientation value. </returns>
+        public static Vector3 OrientationToVector(Map.Orientation orientation)
+        {
+            switch (orientation)
+            {
+                case Map.Orientation.Bottom:
+                case Map.Orientation.BottomLeft:
+                    return new Vector3(0, 0, 90);
+
+                case Map.Orientation.Right:
+                case Map.Orientation.BottomRight:
+                    return new Vector3(0, 0, 180);
+
+                case Map.Orientation.Top:
+                case Map.Orientation.TopRight:
+                    return new Vector3(0, 0, -90);
+
+                default:
+                    return new Vector3(0, 0, 0);
+            }
+        }
+
         public override string ToString()
         {
             return GetGlobalType() + " at " + Position + ". Orr : " + Orientation;

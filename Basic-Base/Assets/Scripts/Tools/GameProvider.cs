@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Assets.Scripts.Models;
+using Assets.Scripts.Models.Observers;
 
 namespace Assets.Scripts.Tools
 {

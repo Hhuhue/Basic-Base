@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Assets.Scripts.Models.Entities;
 using Assets.Scripts.Models.Mapping;
+using Assets.Scripts.Models.Observers;
 using Assets.Scripts.Models.Resources;
 using Assets.Scripts.Tools;
 using UnityEngine;
@@ -15,7 +16,6 @@ namespace Assets.Scripts.Models
     /// </summary>
     public class Game
     {
-        public static View.ViewMode ViewMode { get; set; }
         public const string SpritesPath = "Sprites/";
 
         private Map _gameWorld;
@@ -51,7 +51,7 @@ namespace Assets.Scripts.Models
         }
 
         /// <summary>
-        /// 
+        /// Gets the land of the tile at the given coordinates
         /// </summary>
         /// <param name="x">The x position. </param>
         /// <param name="y">The y position. </param>
@@ -62,14 +62,14 @@ namespace Assets.Scripts.Models
         }
 
         /// <summary>
-        /// 
+        /// Sets the informations of a land piece.
         /// </summary>
-        /// <param name="landX"></param>
-        /// <param name="landY"></param>
-        /// <param name="tileX"></param>
-        /// <param name="tileY"></param>
-        /// <param name="type"></param>
-        /// <param name="icon"></param>
+        /// <param name="landX">The x position of the map tile. </param>
+        /// <param name="landY">The y position of the map tile. </param>
+        /// <param name="tileX">The x position of the land tile. </param>
+        /// <param name="tileY">The y position of the land tile. </param>
+        /// <param name="type">The new type of the tile. </param>
+        /// <param name="icon">The new Icon of the tile. </param>
         public void SetMapLandTile(int landX, int landY, int tileX, int tileY, Tile.TileType type, Tile.TileType icon)
         {
             Tile landPiece = _gameWorld.GetLand(landX, landY).GetLandPiece(tileX, tileY);
@@ -78,9 +78,9 @@ namespace Assets.Scripts.Models
         }
 
         /// <summary>
-        /// 
+        /// Gets the map dimentions.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The map dimentions. </returns>
         public Dictionary<string, int> GetMapDimentions()
         {
             return new Dictionary<string, int>()
@@ -88,6 +88,46 @@ namespace Assets.Scripts.Models
                 { "Height", _configuration.MapHeight },
                 { "Width", _configuration.MapWidth }
             };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="centerTile"></param>
+        public void ChangeViewMode(View.ViewMode mode, Tile centerTile = null)
+        {
+            _view.SetViewMode(mode);
+
+            if (mode == View.ViewMode.LAND && centerTile != null)
+            {
+                Vector2 viewCenter = new Vector2((float)Math.Truncate((float)View.VIEW_WIDTH / 2), (float)Math.Truncate((float)View.VIEW_HEIGHT / 2));
+                Vector2 newOrigin = new Vector2((int)centerTile.Position.x, (int)centerTile.Position.y) * 10 - viewCenter;
+                SetViewOrigin(newOrigin);
+            }
+
+            if (mode == View.ViewMode.MAP)
+            {
+                int maxViewXPosition = _configuration.MapWidth - View.VIEW_WIDTH;
+                int maxViewYPosition = _configuration.MapHeight - View.VIEW_HEIGHT;
+                
+                Vector2 viewCenter = new Vector2(View.VIEW_WIDTH / 2, View.VIEW_HEIGHT / 2);
+
+                Vector2 focusedLandPiecePosition = GetViewOrigin() + viewCenter;
+                Vector2 scaledPosition = focusedLandPiecePosition / 10;
+                Vector2 scaledOrigin = scaledPosition - viewCenter;
+
+                scaledOrigin.x = (scaledOrigin.x > maxViewXPosition) ? maxViewXPosition : (scaledOrigin.x < 0) ? 0 : scaledOrigin.x;
+                scaledOrigin.y = (scaledOrigin.y > maxViewYPosition) ? maxViewYPosition : (scaledOrigin.y < 0) ? 0 : scaledOrigin.y;
+
+                Debug.Log("Focus: " + focusedLandPiecePosition.ToString() + ", Scaled focus: " + scaledPosition.ToString() + ", Scaled origin: " + scaledOrigin.ToString());
+
+                SetViewOrigin(scaledOrigin);
+            }
+        }
+
+        public void SetViewObserver(IViewObserver observer)
+        {
+            _view.SetViewObserver(observer);
         }
 
         /// <summary>
@@ -107,7 +147,7 @@ namespace Assets.Scripts.Models
         /// <param name="origin"></param>
         public void SetViewOrigin(Vector2 origin)
         {
-            if (ViewMode == View.ViewMode.LAND)
+            if (_view.GetViewMode() == View.ViewMode.LAND)
             {
                 if (origin.x + View.VIEW_WIDTH > _configuration.MapWidth * 10)
                 {
@@ -129,7 +169,25 @@ namespace Assets.Scripts.Models
         /// <returns></returns>
         public Vector2 GetViewOrigin()
         {
-            return _view.Origin;
+            return _view.GetOrigin();
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public View.ViewMode GetViewMode()
+        {
+            return _view.GetViewMode();
+        }
+
+        public void SpawnEntity()
+        {
+            //Vector3 position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, 2.5f);
+            //GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
+            //person.transform.position = position;
+            //person.transform.parent = EntityContainer.transform;
+        }
+
     }
 }

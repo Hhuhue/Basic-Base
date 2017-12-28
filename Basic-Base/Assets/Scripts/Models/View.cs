@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Assets.Scripts.Models.Mapping;
+using Assets.Scripts.Models.Observers;
 using UnityEngine;
 
 namespace Assets.Scripts.Models
@@ -9,18 +11,37 @@ namespace Assets.Scripts.Models
         public const int VIEW_WIDTH = 50;
         public const int VIEW_HEIGHT = 25;
 
-        public Vector2 Origin { get; private set; }
-
+        private Vector2 _origin;
         private readonly Tile[,] _viewField;
         private readonly Map _map;
+        private IViewObserver _observer;
+        private ViewMode _viewMode;
 
         public View(Map map)
         {
             _viewField = new Tile[VIEW_WIDTH, VIEW_HEIGHT];
-            Origin = Vector2.zero;
+            _origin = Vector2.zero;
             _map = map;
+            _viewMode = ViewMode.MAP;
 
             updateView();
+        }
+
+        public void SetViewObserver(IViewObserver observer)
+        {
+            _observer = observer;
+            updateView();
+        }
+
+        public void SetViewMode(ViewMode viewMode)
+        {
+            _viewMode = viewMode;
+            _observer.ToggleTileSelector(viewMode == ViewMode.MAP);
+        }
+
+        public ViewMode GetViewMode()
+        {
+            return _viewMode;
         }
 
         public Tile GetTile(int x, int y)
@@ -31,6 +52,11 @@ namespace Assets.Scripts.Models
             }
 
             return null;
+        }
+
+        public Vector2 GetOrigin()
+        {
+            return _origin;
         }
 
         public void SetOrigin(Vector2 origin)
@@ -47,7 +73,7 @@ namespace Assets.Scripts.Models
 
             if (mapViewIsValid || landViewIsValid)
             {
-                Origin = origin;
+                _origin = origin;
                 updateView();
             }
             else
@@ -62,15 +88,20 @@ namespace Assets.Scripts.Models
             {
                 for (int y = 0; y < VIEW_HEIGHT; y++)
                 {
-                    Vector2 tilePosition = new Vector2(Origin.x + x, Origin.y + y);
-                    Vector2 landPiecePosition = new Vector2((Origin.x + x) % 10, (Origin.y + y) % 10);
+                    Vector2 tilePosition = new Vector2(_origin.x + x, _origin.y + y);
+                    Vector2 landPiecePosition = new Vector2((_origin.x + x) % 10, (_origin.y + y) % 10);
 
-                    Tile tile = Game.ViewMode == ViewMode.LAND
+                    Tile tile = _viewMode == ViewMode.LAND
                         ? _map.GetLand((int)tilePosition.x / 10, (int)tilePosition.y / 10)
                             .GetLandPiece((int)landPiecePosition.x, (int)landPiecePosition.y)
                         : _map.GetTile((int)tilePosition.x, (int)tilePosition.y);
 
                     _viewField[x, y] = tile;
+
+                    if (_observer != null)
+                    {
+                        _observer.TileChanged(x, y);
+                    }
                 }
             }
         }
