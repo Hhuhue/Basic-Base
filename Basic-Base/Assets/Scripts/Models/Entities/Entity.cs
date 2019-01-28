@@ -13,5 +13,7 @@ namespace Assets.Scripts.Models.Entities
         public Vector3 Position { get; set; }
 
         public bool Selected { get; set; }
+
+        public abstract Action[] GetActions(ActionBase actionBase);
     }
 }

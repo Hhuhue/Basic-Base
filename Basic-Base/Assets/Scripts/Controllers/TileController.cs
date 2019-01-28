@@ -31,6 +31,21 @@ namespace Assets.Scripts.Controllers
             {
                 _game.ChangeViewMode(View.ViewMode.LAND, _tile);
             }
+            else
+            {
+                ActionBase actionBase = _game.GetActionBase();
+                actionBase.Location = _game.GetViewOrigin() + (Vector2)transform.position;
+                Action[] actions = _tile.GetActions(actionBase);
+
+                if(actions.Length != 0)
+                {
+                    actions[0].Perform();
+                }
+                else
+                {
+                    Debug.Log("No actions");
+                }
+            }
         }
     
         void OnMouseEnter()

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Models.Entities;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Scripts.Models.Mapping
 {
@@ -41,6 +43,24 @@ namespace Assets.Scripts.Models.Mapping
                 default:
                     return new Vector3(0, 0, 0);
             }
+        }
+
+        public Action[] GetActions(ActionBase actionBase)
+        {
+            //actionBase.Location = Position;
+            List<Action> actions = new List<Action>();
+
+            if (!actionBase.FirstPersonSpawned)
+            {
+                actions.Add(new SpawnAction(actionBase.EFactory, actionBase.Location, "Start here."));
+            }
+
+            foreach (Entity entity in actionBase.Selection)
+            {
+                actions.AddRange(entity.GetActions(actionBase));
+            }
+
+            return actions.ToArray();
         }
 
         public override string ToString()

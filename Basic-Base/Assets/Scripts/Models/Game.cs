@@ -14,14 +14,17 @@ namespace Assets.Scripts.Models
     /// <summary>
     /// Class managing all game data
     /// </summary>
-    public class Game
+    public class Game : IFactoryObserver
     {
         public const string SpritesPath = "Sprites/";
 
         private Map _gameWorld;
         private List<Entity> _entities;
+        private List<Entity> _selection;
         private Config _configuration;
         private View _view;
+        private bool _firstPersonSpawned;
+        private EntityFactory _entityFactory;
 
         /// <summary>
         /// Creates an new game instance.
@@ -37,6 +40,10 @@ namespace Assets.Scripts.Models
             _gameWorld.GenerateLands(gameConfiguration.Seed);
             _entities = new List<Entity>();
             _view = new View(_gameWorld);
+            _selection = new List<Entity>();
+            _firstPersonSpawned = false;
+            _entityFactory = new EntityFactory();
+            _entityFactory.AddObserver(this);
         }
         
         /// <summary>
@@ -104,8 +111,7 @@ namespace Assets.Scripts.Models
                 Vector2 newOrigin = new Vector2((int)centerTile.Position.x, (int)centerTile.Position.y) * 10 - viewCenter;
                 SetViewOrigin(newOrigin);
             }
-
-            if (mode == View.ViewMode.MAP)
+            else if (mode == View.ViewMode.MAP)
             {
                 int maxViewXPosition = _configuration.MapWidth - View.VIEW_WIDTH;
                 int maxViewYPosition = _configuration.MapHeight - View.VIEW_HEIGHT;
@@ -163,31 +169,67 @@ namespace Assets.Scripts.Models
             _view.SetOrigin(origin);
         }
 
+        public void AddFactoryObserver(IFactoryObserver observer)
+        {
+            _entityFactory.AddObserver(observer);
+        }
+
         /// <summary>
-        /// 
+        /// Gets the view origin.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The view's origin.</returns>
         public Vector2 GetViewOrigin()
         {
             return _view.GetOrigin();
         }
 
         /// <summary>
-        /// 
+        /// Gets the current view mode
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The current view mode. </returns>
         public View.ViewMode GetViewMode()
         {
             return _view.GetViewMode();
         }
 
-        public void SpawnEntity()
+        /// <summary>
+        /// Sets the current entity selection.
+        /// </summary>
+        /// <param name="entities">The selected entities.</param>
+        /// <param name="append">Append the new selction to the current one or not.</param>
+        public void SetSelected(List<Entity> entities, bool append)
         {
-            //Vector3 position = new Vector3(View.VIEW_WIDTH / 2 + 5, View.VIEW_HEIGHT / 2 + 5, 2.5f);
-            //GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
-            //person.transform.position = position;
-            //person.transform.parent = EntityContainer.transform;
+            if (append)
+            {
+                _selection.AddRange(entities);
+            }
+            else
+            {
+                _selection = entities;
+            }
         }
 
+        public ActionBase GetActionBase()
+        {
+            return new ActionBase
+            {
+                FirstPersonSpawned = _firstPersonSpawned,
+                Selection = _selection,
+                EFactory = _entityFactory
+            };
+        }
+
+        public void OnEntityCreated(Entity createdEntity)
+        {
+            _entities.Add(createdEntity);
+        }
+
+        public void OnPersonCreated(Entity createdEntity)
+        {
+            if (!_firstPersonSpawned)
+            {
+                _firstPersonSpawned = true;
+            }
+        }
     }
 }

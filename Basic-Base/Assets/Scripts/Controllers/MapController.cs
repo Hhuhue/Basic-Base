@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Assets.Scripts.Models;
+using Assets.Scripts.Models.Entities;
 using Assets.Scripts.Models.Mapping;
 using Assets.Scripts.Tools;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace Assets.Scripts.Controllers
     /// <summary>
     /// Class initializing the map
     /// </summary>
-    public class MapController : MonoBehaviour
+    public class MapController : MonoBehaviour, IFactoryObserver
     {
         public bool UseMenuConfig;
         public int Width;
@@ -38,6 +39,7 @@ namespace Assets.Scripts.Controllers
             loadMap(HomeController.GetConfig() ?? new Config());
             setCamera();
             setViewManager();
+            GameProvider.Game().AddFactoryObserver(this);
         }
 
         void Update()
@@ -90,6 +92,19 @@ namespace Assets.Scripts.Controllers
             Vector3 cameraPosition = new Vector3((float)View.VIEW_WIDTH / 2 + 0.5f, (float)View.VIEW_HEIGHT / 2 + 0.5f, -5);
         
             Camera.main.transform.position = cameraPosition;
+        }
+
+        public void OnEntityCreated(Entity createdEntity)
+        {
+            
+        }
+
+        public void OnPersonCreated(Entity createdEntity)
+        {
+            GameObject person = Instantiate(Resources.Load<GameObject>("Prefabs/Person"));
+            person.GetComponent<PersonController>().SetPerson((Living) createdEntity);
+            person.transform.position = createdEntity.Position;
+            person.transform.parent = EntityContainer.transform;
         }
     }
 }

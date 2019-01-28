@@ -7,26 +7,38 @@ namespace Assets.Scripts.Controllers
 {
     public class PersonController : MonoBehaviour
     {
-        public Living Person { get; set; }
+        public Living _person;
         private Game _game;
 
         void Start()
         {
             _game = GameProvider.Game();
-            Person = new Living((Vector2) transform.position + _game.GetViewOrigin());
-            Person.Selected = false;
+            _person.Selected = false;
         }
 
         void Update()
         {
-            Person.Tick((Vector2)transform.position + _game.GetViewOrigin());
+            if (_person != null)
+            {
+                _person.Tick();
 
-            transform.position = Person.Position - (Vector3)_game.GetViewOrigin();
+                transform.position = _person.Position - (Vector3)_game.GetViewOrigin();
+            }
+        }
+
+        public void SetPerson(Living person)
+        {
+            _person = person;
+        }
+
+        public Living GetPerson()
+        {
+            return _person;
         }
 
         public void SetPosition(Vector3 position)
         {
-            Person.SetPosition((Vector2)position + _game.GetViewOrigin());
+            _person.SetPosition(position + (Vector3)_game.GetViewOrigin());
         }
 
         public void Translate(Vector2 move)
@@ -36,7 +48,7 @@ namespace Assets.Scripts.Controllers
 
         public void SetSelected(bool state)
         {
-            Person.Selected = state;
+            _person.Selected = state;
             string iconPath = !state ? "" : Game.SpritesPath + "circle";
 
             transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(iconPath);
@@ -44,7 +56,7 @@ namespace Assets.Scripts.Controllers
 
         public void GoToPosition(Vector2 destination)
         {
-            Person.GoToPosition(destination + _game.GetViewOrigin());
+            _person.GoToPosition(destination + _game.GetViewOrigin());
         }
     }
 }

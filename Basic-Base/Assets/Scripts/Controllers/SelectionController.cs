@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Assets.Scripts.Models.Entities;
 using Assets.Scripts.Tools;
 using UnityEngine;
 
@@ -27,6 +29,7 @@ namespace Assets.Scripts.Controllers
             if (Input.GetMouseButtonDown(1))
             {
                 List<PersonController> selection = getSelection();
+                GameProvider.Game().SetSelected(selection.Select(x => (Entity)x.GetPerson()).ToList(), false);
                 Vector3 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
                 foreach (PersonController controller in selection)
@@ -62,7 +65,7 @@ namespace Assets.Scripts.Controllers
             {
                 Transform entity = transform.GetChild(i);
                 PersonController controller = entity.GetComponent<PersonController>();
-                if(controller.Person.Selected) selection.Add(controller);
+                if(controller.GetPerson().Selected) selection.Add(controller);
             }
 
             return selection;
